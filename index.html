@@ -1,0 +1,3150 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AQARAT 24</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #023E8A; --primary-hover: #012a60; --background-color: #f8f9fa;
+            --card-background: #ffffff; --text-color: #202124; --text-light: #5f6368;
+            --border-color: #e8eaed; --shadow: 0 1px 2px rgba(60,64,67,0.3), 0 2px 6px 2px rgba(60,64,67,0.15);
+            --favorite-color: #ffc107; --rent-color: #f39c12; --sold-color: #e74c3c;
+            --pending-color: #5bc0de;
+        }
+        body.dark-mode {
+            --primary-color: #4A90E2; --primary-hover: #63a0e8; --background-color: #1a1a1b;
+            --card-background: #272728; --text-color: #e8eaed; --text-light: #9aa0a6;
+            --border-color: #3c4043; --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 2px 6px 2px rgba(0,0,0,0.15);
+        }
+        
+        body { font-family: 'Vazirmatn', Tahoma, sans-serif; } 
+
+        .form-group input, .form-group select, .form-group textarea, .submit-btn, .list-card, .profile-header, .stat-card, 
+        .my-posts-controls, .form-container, #location-picker-map, .spec-item, #single-post-map, #logout-btn, .detail-header, 
+        .detail-main-info, .detail-gallery img, .contact-list li, .grid-card, .story-card, .grid-card .property-image-container, .story-card .property-image-container, .form-card, .info-card { 
+            border-radius: 20px !important; 
+        }
+        
+        #profile-pic { border-radius: 20px !important; }
+
+        .info-section { margin-top: 20px; border: 1px solid var(--border-color); border-radius: 20px; overflow: hidden; }
+        .info-section summary { position: relative; padding: 15px; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background-color: var(--card-background); }
+        .info-section summary:hover { background-color: var(--background-color); }
+        .info-section summary.has-notification::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0px;
+            transform: translateY(-50%);
+            width: 10px;
+            height: 10px;
+            background-color: #e74c3c;
+            border-radius: 50%;
+        }
+        html[dir="ltr"] .info-section summary.has-notification::before { left: auto; right: 0px; }
+        .info-section summary::after { content: '\\f078'; font-family: 'Font Awesome 6 Free'; font-weight: 900; transition: transform 0.3s ease; }
+        .info-section[open] > summary::after { transform: rotate(-180deg); }
+        .info-section .info-content { padding: 0 15px 15px 15px; background-color: var(--card-background); }
+        .info-section .info-content ul { list-style-type: none; padding-right: 20px; margin: 0; }
+        html[dir="ltr"] .info-section .info-content ul { padding-right: 0; padding-left: 20px; }
+        .info-section .info-content li { padding: 8px 0; border-bottom: 1px solid var(--border-color); font-size: 0.9em; }
+        .info-section .info-content li:last-child { border-bottom: none; }
+        .info-section .info-content li::before { content: '•'; color: var(--primary-color); font-weight: bold; display: inline-block; width: 1em; margin-right: -1em; margin-left: 0.5em;}
+        html[dir="ltr"] .info-section .info-content li::before { margin-left: -1em; margin-right: 0.5em;}
+        
+        .info-card { background: var(--card-background); padding: 20px; box-shadow: var(--shadow); margin-top: 20px;}
+        .info-card-header { font-size: 1.2em; font-weight: 700; color: var(--primary-color); margin: 0 0 15px 0; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 10px;}
+        .info-card-header i { font-size: 0.9em; }
+        .info-card ul { list-style-type: none; padding-right: 15px; margin: 0; }
+        html[dir="ltr"] .info-card ul { padding-right: 0; padding-left: 15px;}
+        .info-card li { margin-bottom: 10px; font-size: 0.95em; line-height: 1.6; display: flex; align-items: flex-start; gap: 10px;}
+        .info-card li i { color: var(--primary-color); font-size: 0.8em; margin-top: 5px; }
+        
+        body, .property-card, .form-container, .contact-list li, .stat-card, .my-posts-controls, #logout-btn, .spec-item, .detail-header, .detail-main-info {
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        body { margin: 0; background-color: var(--background-color); color: var(--text-color); }
+        
+        header { 
+            background: var(--card-background);
+            padding: 10px 15px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 1002;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        header h1 {
+            margin: 0;
+            font-size: 1.6em; 
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .header-left-icons {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-icon {
+            position: relative;
+            font-size: 1.3em;
+            color: var(--text-light);
+            text-decoration: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        .header-icon:hover {
+            background-color: var(--background-color);
+            color: var(--primary-color);
+        }
+        .has-notification::after {
+            content: '';
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 10px;
+            height: 10px;
+            background-color: #e74c3c;
+            border-radius: 50%;
+            border: 2px solid var(--card-background);
+        }
+        main { padding: 20px 20px 100px 20px; }
+        .page-content { display: none; }
+        .page-content.active { display: block; }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 15px;
+            left: 15px;
+            right: 15px;
+            width: auto;
+            height: 70px;
+            background: var(--card-background);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 0 10px;
+            box-sizing: border-box;
+            border-radius: 35px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-color);
+            z-index: 1001;
+        }
+        
+        .bottom-nav .nav-group {
+            display: flex;
+            justify-content: space-around;
+            flex-grow: 1;
+        }
+
+        .bottom-nav a {
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 25px;
+            color: var(--text-light);
+            gap: 6px;
+            padding: 8px;
+            width: 42px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .bottom-nav a i {
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+        
+        .bottom-nav a span {
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+            display: none;
+        }
+        
+        .bottom-nav a.active {
+            width: 110px;
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .bottom-nav a.active span {
+            display: inline;
+        }
+
+        #fab-add-btn {
+            order: 0;
+            width: 55px;
+            height: 55px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 12px rgba(2, 62, 138, 0.3);
+        }
+        #fab-add-btn:active {
+            transform: scale(0.9);
+        }
+        #fab-add-btn i {
+            font-size: 24px;
+        }
+
+        .form-container { background: var(--card-background); padding: 20px; box-shadow: var(--shadow); }
+        
+        .form-section-title {
+            font-size: 1.1em; font-weight: 600; color: var(--primary-color);
+            margin-top: 25px; margin-bottom: 20px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .form-section-title::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background-color: var(--primary-color);
+            border-radius: 2px;
+        }
+
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9em; color: var(--text-light); }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; font-size: 1em; border: 1px solid var(--border-color); background-color: var(--background-color); color: var(--text-color); box-sizing: border-box; transition: border-color 0.2s, box-shadow 0.2s; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--primary-color); box-shadow: 0 0 0 2px rgba(2,62,138, 0.2); outline: none; }
+        .form-group .input-with-icon { position: relative; }
+        .form-group .input-with-icon i { position: absolute; top: 50%; transform: translateY(-50%); right: 15px; color: var(--text-light); }
+        html[dir="ltr"] .form-group .input-with-icon i { right: auto; left: 15px; }
+        .form-group .input-with-icon input { padding-right: 40px; }
+        html[dir="ltr"] .form-group .input-with-icon input { padding-right: 12px; padding-left: 40px; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+        .submit-btn { background-color: var(--primary-color); color: white; cursor: pointer; margin-top: 20px; border: none; font-weight: 600; padding: 14px; width: 100%; font-size: 1.1em; transition: background-color 0.2s; }
+        .submit-btn:hover { background-color: var(--primary-hover); }
+        .image-upload-box { 
+            width: 100%; 
+            min-height: 180px; 
+            border: 2px solid var(--border-color);
+            background-color: var(--background-color);
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            cursor: pointer; 
+            background-size: cover; 
+            background-position: center; 
+            transition: all 0.3s; 
+            padding: 20px; 
+            box-sizing: border-box;
+            border-radius: 20px;
+        }
+        .image-upload-box:hover { border-color: var(--primary-color); box-shadow: 0 0 10px rgba(2,62,138, 0.1); }
+        .image-upload-box .upload-icon { text-align: center; color: var(--text-light); }
+        #image-upload-input { display: none; }
+        
+        #image-previews-container { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; }
+        .img-preview-wrapper { position: relative; width: 80px; height: 80px; border: 2px solid var(--border-color); border-radius: 12px; overflow: hidden; }
+        .img-preview-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+        .delete-img-btn {
+            position: absolute; top: -5px; right: -5px;
+            width: 20px; height: 20px; background-color: #dc3545; color: white;
+            border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            cursor: pointer; font-size: 12px; border: 1px solid white;
+        }
+
+        .segmented-control {
+            display: flex; width: 100%; border-radius: 10px; overflow: hidden; gap: 10px;
+        }
+        .segmented-control button {
+            flex: 1; padding: 10px; border: 1px solid var(--border-color);
+            background-color: var(--card-background); color: var(--text-light);
+            font-weight: 600; font-family: 'Vazirmatn', sans-serif;
+            cursor: pointer; transition: all 0.2s ease;
+            border-radius: 10px;
+        }
+        .segmented-control button.active {
+            background-color: var(--primary-color); color: white; border-color: var(--primary-color);
+        }
+        .segmented-control i {
+            margin-left: 8px;
+        }
+        html[dir=ltr] .segmented-control i {
+            margin-left: 0; margin-right: 8px;
+        }
+
+        .property-type-selector {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            scrollbar-width: none;
+        }
+        .property-type-selector::-webkit-scrollbar {
+            display: none;
+        }
+        .property-type-selector button {
+            flex: 0 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 80px;
+            height: 80px;
+            border: 1px solid var(--border-color);
+            background-color: var(--background-color);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .property-type-selector button i {
+            font-size: 1.8em;
+            color: var(--text-light);
+            margin-bottom: 5px;
+            transition: color 0.2s ease;
+        }
+        .property-type-selector button span {
+            font-size: 0.8em;
+            font-weight: 600;
+            color: var(--text-light);
+            transition: color 0.2s ease;
+        }
+        .property-type-selector button.active {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        .property-type-selector button.active i,
+        .property-type-selector button.active span {
+            color: white;
+        }
+
+        .number-selector, .direction-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .number-selector button, .direction-selector button {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            background-color: var(--card-background);
+            color: var(--text-light);
+            font-weight: 600;
+            font-family: 'Vazirmatn', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-radius: 10px;
+            min-width: 50px;
+            text-align: center;
+        }
+        .number-selector button.active, .direction-selector button.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .form-notice {
+            margin: 25px 0 20px 0;
+            padding: 15px;
+            border-radius: 12px;
+            background-color: #e7f3ff;
+            border-right: 5px solid var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        body.dark-mode .form-notice {
+            background-color: #2c3e50;
+            border-right-color: var(--primary-color);
+        }
+        html[dir="ltr"] .form-notice {
+            border-right: none;
+            border-left: 5px solid var(--primary-color);
+        }
+        .form-notice i {
+            font-size: 1.8em;
+            color: var(--primary-color);
+        }
+        .form-notice p {
+            margin: 0;
+            font-size: 0.9em;
+            line-height: 1.5;
+            color: var(--text-color);
+        }
+
+        body.map-is-active header { display: none; }
+        body.map-is-active main { padding: 0; }
+        body.map-is-active #main-map-container { height: 100vh; }
+        
+        #main-map-container, #location-picker-map { width: 100%; z-index: 1; }
+        #main-map-container { height: 100%; position: relative; }
+        #location-picker-map { height: 300px; }
+        
+        .map-controls {
+            position: absolute;
+            bottom: 90px;
+            right: 15px;
+            z-index: 401;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .map-controls .map-control-group {
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+        .map-controls button {
+            width: 44px; height: 44px;
+            background-color: var(--card-background);
+            border: none;
+            font-size: 1.2em;
+            color: var(--primary-color);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .map-controls .map-control-group button:first-child {
+            border-bottom: 1px solid var(--border-color);
+        }
+        .map-controls button:active {
+            transform: scale(0.95);
+            background-color: var(--background-color);
+        }
+        .map-controls > button {
+             border-radius: 50% !important;
+             box-shadow: var(--shadow);
+             border: 1px solid var(--border-color);
+        }
+
+        .user-location-marker {
+            background-color: #4A90E2;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 0 10px rgba(74, 144, 226, 0.8);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(74, 144, 226, 0.7); }
+            70% { box-shadow: 0 0 0 20px rgba(74, 144, 226, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(74, 144, 226, 0); }
+        }
+
+        .property-card { position: relative; overflow: hidden; cursor: pointer; }
+        .zero-badge { position: absolute; top: 10px; right: 10px; background-color: rgba(2, 62, 138, 0.8); color: white; padding: 4px 10px; border-radius: 8px; font-size: 0.8em; font-weight: 700; z-index: 10; backdrop-filter: blur(4px); }
+        .post-code-badge { position: absolute; top: 10px; left: 10px; background-color: rgba(52, 58, 64, 0.8); color: white; padding: 4px 8px; border-radius: 8px; font-size: 0.8em; font-weight: 700; z-index: 10; backdrop-filter: blur(4px); display: flex; align-items: center; gap: 4px; }
+        .list-card .post-code-badge { top: auto; bottom: 10px; }
+        .property-image-container { width: 100%; height:100%; }
+        .property-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: opacity 0.3s ease-in-out;
+            opacity: 0;
+        }
+        .property-image-container img.loaded {
+            opacity: 1;
+        }
+        .price { font-size: 1.5em; color: var(--sold-color); margin-bottom: 10px; font-weight: 700; }
+        .card-actions { display: flex; gap: 10px; padding: 15px; background-color: var(--background-color); border-top: 1px solid var(--border-color); }
+        .action-btn { flex-grow: 1; padding: 10px; border: none; color: white; cursor: pointer; font-weight: 600; }
+        .edit-btn { background-color: #ffc107; color: #333; }
+        .delete-btn { background-color: #dc3545; }
+        .sold-btn { background-color: #28a745; }
+        .approve-btn { background-color: var(--pending-color); }
+        
+        .profile-header { display: flex; flex-direction: column; align-items: center; padding: 20px; background-color: var(--card-background); margin-bottom: 20px; box-shadow: var(--shadow); }
+        #profile-pic-container { position: relative; cursor: pointer; }
+        #profile-pic { width: 100px; height: 100px; object-fit: cover; border: 4px solid var(--primary-color); }
+        #profile-pic-edit-icon { position: absolute; bottom: 5px; right: 5px; background-color: white; border-radius: 50%; padding: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        #username-display { font-size: 1.5em; font-weight: 700; margin-top: 10px; color: var(--text-color); }
+        #edit-profile-btn { background: none; border: none; color: var(--primary-color); cursor: pointer; font-weight: 600; }
+        #profile-pic-input { display: none; }
+        .stats-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+        .stat-card { background-color: var(--card-background); padding: 15px; text-align: center; box-shadow: var(--shadow); }
+        .stat-card i { font-size: 2em; color: var(--primary-color); }
+        .stat-card .stat-number { font-size: 1.8em; font-weight: 700; display: block; }
+        .stat-card .stat-label { font-size: 0.8em; color: var(--text-light); }
+        .my-posts-controls { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; background-color: var(--card-background); padding: 10px; box-shadow: var(--shadow); }
+        .filter-btn { padding: 8px 15px; border: 1px solid var(--border-color); background-color: var(--background-color); color: var(--text-color); border-radius: 20px; cursor: pointer; font-weight: 600; flex-grow: 1;}
+        .filter-btn.active { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
+        #search-my-posts { padding: 8px 15px; border-radius: 20px; flex-grow: 2; min-width: 150px; }
+        #logout-btn { display: block; width: 100%; padding: 15px; border: none; background-color: #dc3545; color: white; font-size: 1.1em; font-weight: 700; cursor: pointer; margin-top: 20px; }
+        #logout-btn i { margin-right: 10px; }
+        html[dir="ltr"] #logout-btn i { margin-right: 0; margin-left: 10px; }
+        .contact-list { list-style: none; padding: 0; }
+        .contact-list li { background: var(--card-background); padding: 15px; margin-bottom: 10px; display: flex; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .contact-list li i { color: var(--primary-color); font-size: 1.5em; margin-left: 15px; }
+        html[dir="ltr"] .contact-list li i { margin-left: 0; margin-right: 15px; }
+        .contact-list li a { text-decoration: none; color: var(--text-color); font-weight: bold; font-size: 1.1em; direction: ltr; text-align: left; }
+        .empty-page-message { text-align: center; color: var(--text-light); padding: 40px; grid-column: 1 / -1; }
+        .section-title { font-size: 1.4em; font-weight: 700; color: var(--text-color); margin-bottom: 15px; margin-top: 0; }
+        .posts-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        
+        .grid-card .property-image-container {
+            aspect-ratio: 1 / 1;
+        }
+        .posts-grid.story-view {
+             grid-template-columns: repeat(2, 1fr);
+        }
+        .story-card .property-image-container {
+            aspect-ratio: 9 / 16;
+        }
+
+        .grid-card-info { position: absolute; bottom: 0; left: 0; right: 0; padding: 12px; color: white; background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 120%); }
+        .location-price { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        .grid-card-info h3, .story-card-info h3 { font-size: 0.9em; margin: 0; color: #fff; text-shadow: 1px 1px 2px rgba(0,0,0,0.7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .grid-card-info .price, .story-card-info .price { font-size: 1em; color: #fff; font-weight: bold; margin: 0; flex-shrink: 0; margin-right: 5px; }
+        .story-card-info { position: absolute; bottom: 0; left: 0; right: 0; padding: 10px; color: white; background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%); display: flex; flex-direction: column; gap: 5px; }
+        
+        .story-card-extra-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            font-size: 0.75em;
+            opacity: 0.9;
+            color: #ddd;
+            margin-top: 5px;
+        }
+        .story-card-extra-details span {
+            display: flex;
+            align-items: center;
+            background-color: rgba(0,0,0,0.3);
+            padding: 2px 6px;
+            border-radius: 6px;
+        }
+        .story-card-extra-details i {
+            margin-left: 4px;
+        }
+        html[dir=ltr] .story-card-extra-details i {
+            margin-left: 0;
+            margin-right: 4px;
+        }
+        
+        .list-card { background: var(--card-background); box-shadow: var(--shadow); border: 1px solid var(--border-color); margin-bottom: 20px; display: flex; align-items: center; }
+        .list-card .property-image-container { flex-shrink: 0; width: 100px; height: 80px; }
+        .list-card .list-card-info { padding: 15px; flex-grow: 1; }
+        .list-card .list-card-info h3 { margin: 0 0 5px 0; font-size: 1em; }
+        .list-card .list-card-info .price { font-size: 1.1em; margin: 0; }
+        
+        .overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); color: white; display: flex;
+            justify-content: center; align-items: center; font-size: 1.5em;
+            font-weight: 700; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            z-index: 9; backdrop-filter: blur(2px);
+        }
+        .overlay.pending { background-color: rgba(91, 192, 222, 0.7); }
+
+        #post-detail-page { padding: 0; background-color: var(--card-background); }
+        .detail-header { padding: 10px 15px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); }
+        .back-btn { background: none; border: none; font-size: 1.5em; cursor: pointer; color: var(--text-color); }
+        .detail-title-wrapper {flex-grow: 1; text-align: center;}
+        .detail-title { font-size: 1.2em; font-weight: 700; margin: 0; }
+        .detail-code {font-size: 0.7em; color: var(--text-light); margin-top: 2px; display: block;}
+        .detail-fav-btn { font-size: 1.5em; background: none; border: none; cursor: pointer; color: #ccc; }
+        .detail-fav-btn.is-favorite { color: var(--favorite-color); }
+        
+        .detail-gallery {
+            display: flex;
+            overflow-x: auto;
+            gap: 10px;
+            padding: 20px;
+            scrollbar-width: none;
+            -ms-overflow-style: none; 
+        }
+        .detail-gallery::-webkit-scrollbar { display: none; }
+        .detail-gallery img {
+            width: 80vw;
+            max-width: 300px;
+            height: auto;
+            aspect-ratio: 1 / 1;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .detail-main-info { padding: 20px; border-bottom: 1px solid var(--border-color); }
+        .detail-main-info h2 { margin-top: 0; margin-bottom: 10px; font-size: 1.6em; }
+        .detail-main-info .price { font-size: 2em; }
+        .detail-specs { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 20px; padding: 20px; }
+        .spec-item { background-color: var(--background-color); padding: 15px; text-align: center; }
+        .spec-item i { font-size: 1.8em; color: var(--primary-color); margin-bottom: 8px; }
+        .spec-item .label { font-size: 0.8em; color: var(--text-light); display: block; }
+        .spec-item .value { font-size: 1.1em; font-weight: 600; display: block; }
+        #single-post-map { height: 250px; z-index: 1; }
+        .map-popup { text-align: right; }
+        .map-popup img { width: 100%; height: 80px; object-fit: cover; border-radius: 4px; }
+        .map-popup h4 { margin: 5px 0; font-size: 1em; }
+        .map-popup .price { font-size: 1.1em; color: var(--sold-color); font-weight: bold; }
+        .map-popup button { margin-top: 8px; padding: 5px 10px; background-color: var(--primary-color); color: white; border: none; border-radius: 5px; cursor: pointer; width: 100%; }
+        .switch { position: relative; display: inline-block; width: 60px; height: 34px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--primary-color); }
+        input:checked + .slider:before { transform: translateX(26px); }
+        
+        .custom-map-marker {
+            background-color: var(--primary-color); width: 30px; height: 30px; border-radius: 50%;
+            border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            display: flex; justify-content: center; align-items: center;
+        }
+        .custom-map-marker.rent { background-color: var(--rent-color); }
+        .custom-map-marker.sold { background-color: var(--sold-color); }
+        .custom-map-marker i { color: #fff; font-size: 12px; }
+
+        .picker-map-marker {
+            background-color: var(--rent-color); width: 20px; height: 20px; border-radius: 50%;
+            border: 3px solid #fff; box-shadow: 0 0 10px rgba(0,0,0,0.5); cursor: move;
+        }
+        
+        .marker-cluster-small,
+        .marker-cluster-medium,
+        .marker-cluster-large {
+            background-color: rgba(2, 62, 138, 0.75);
+            backdrop-filter: blur(5px);
+            border: 2px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+        }
+        .marker-cluster div {
+            background-color: transparent; 
+        }
+        .marker-cluster span {
+            color: #ffffff;
+            font-weight: 700;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+        }
+        
+        #toast-notification {
+            position: fixed;
+            bottom: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0,0,0,0.8);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 25px;
+            z-index: 10000;
+            transition: bottom 0.5s ease-in-out;
+            font-size: 0.9em;
+        }
+        #toast-notification.show {
+            bottom: 80px;
+        }
+
+        .developer-info {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: var(--background-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            text-align: center;
+        }
+        .developer-info .dev-title {
+            font-size: 0.8em;
+            color: var(--text-light);
+            margin: 0 0 10px 0;
+            font-weight: 600;
+        }
+        .developer-info .dev-name {
+            font-size: 1.1em;
+            color: var(--text-color);
+            font-weight: 700;
+            margin: 0;
+            cursor: pointer;
+        }
+        .developer-info .dev-contact {
+            margin-top: 5px;
+        }
+        .developer-info .dev-contact a {
+            text-decoration: none;
+            color: var(--primary-color);
+            font-weight: 600;
+            font-size: 1em;
+            direction: ltr;
+        }
+        .developer-info .dev-contact i {
+            margin-right: 8px;
+        }
+        
+        .grid-card-bottom-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 5px;
+            font-size: 0.9em;
+        }
+        .grid-card-bottom-details > span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .grid-card-bottom-details .price {
+            font-size: 1.1em !important;
+            color: #fff !important;
+            font-weight: bold !important;
+            margin: 0 !important;
+        }
+
+        .admin-view { display: none; }
+        .custom-map-layer-switcher {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            z-index: 401;
+            background: var(--card-background);
+            border-radius: 25px;
+            box-shadow: var(--shadow);
+            padding: 5px;
+            display: flex;
+            gap: 5px;
+        }
+        .custom-map-layer-switcher button {
+            background-color: transparent;
+            border: none;
+            color: var(--text-light);
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .custom-map-layer-switcher button:hover {
+            background-color: var(--background-color);
+        }
+        .custom-map-layer-switcher button.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .admin-header h2 {
+            margin: 0;
+            color: var(--text-color);
+        }
+        .admin-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .admin-stat-card {
+            background-color: var(--card-background);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+        .admin-stat-card .stat-number {
+            font-size: 2.2em;
+            font-weight: 700;
+            color: var(--primary-color);
+            display: block;
+        }
+        .admin-stat-card .stat-label {
+            font-size: 0.9em;
+            color: var(--text-light);
+            margin-top: 5px;
+            display: block;
+        }
+        .admin-dashboard-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .admin-dashboard-nav button {
+            font-size: 1.1em;
+            padding: 18px;
+            border-radius: 15px;
+            gap: 10px;
+            justify-content: center;
+        }
+        .admin-columns {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        .admin-column h3 {
+            background-color: var(--background-color);
+            padding: 12px;
+            border-radius: 15px;
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            border-bottom: 2px solid var(--primary-color);
+        }
+        #users-data-table-container, #private-data-table-container, #admin-data-table-container {
+            overflow-x: auto;
+        }
+        #users-data-table, #private-data-table, #admin-data-table {
+            width: 100%;
+            border-collapse: collapse;
+            white-space: nowrap;
+        }
+        #users-data-table th, #users-data-table td, #private-data-table th, #private-data-table td, #admin-data-table th, #admin-data-table td {
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            text-align: right;
+        }
+        #users-data-table thead, #private-data-table thead, #admin-data-table thead {
+            background-color: var(--background-color);
+        }
+        #users-data-table tr:nth-child(even), #private-data-table tr:nth-child(even), #admin-data-table tr:nth-child(even) {
+            background-color: var(--background-color);
+        }
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 2000; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.5);
+            -webkit-backdrop-filter: blur(4px);
+            backdrop-filter: blur(4px);
+        }
+        .modal-content {
+            background-color: var(--card-background);
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            width: 90%;
+            max-width: 500px;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            animation: modal-fade-in 0.3s ease;
+        }
+        @keyframes modal-fade-in {
+            from { transform: translateY(-30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .close-btn {
+            color: var(--text-light);
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close-btn:hover, .close-btn:focus {
+            color: var(--text-color);
+        }
+
+        .office-map-marker {
+            background-color: #28a745;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 3px solid #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .office-map-marker i {
+            color: #fff;
+            font-size: 16px;
+        }
+
+        .home-search-container {
+            margin-bottom: 20px;
+        }
+        .home-search-filter-details {
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            overflow: hidden;
+            margin-top: 15px;
+        }
+        .home-search-filter-details summary {
+            padding: 12px 15px;
+            font-weight: 600;
+            cursor: pointer;
+            background-color: var(--card-background);
+        }
+        .home-search-filter-details .filter-content {
+             padding: 15px;
+             background-color: var(--card-background);
+             border-top: 1px solid var(--border-color);
+        }
+        
+        #add-property-form {
+            background: none;
+            padding: 0;
+            box-shadow: none;
+        }
+        .form-card {
+            background-color: var(--card-background);
+            box-shadow: var(--shadow);
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+        .form-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .form-card-header i {
+            font-size: 1.2em;
+            color: var(--primary-color);
+            width: 25px;
+            text-align: center;
+        }
+        .form-card-header h3 {
+            margin: 0;
+            font-size: 1.2em;
+            font-weight: 700;
+        }
+        .form-card-body {
+            padding: 20px;
+        }
+
+        .auth-container { max-width: 400px; margin: 0 auto; }
+        .auth-toggle-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: var(--primary-color);
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .notification-card {
+            background: var(--card-background);
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 12px;
+            position: relative;
+        }
+        .notification-title { font-weight: 700; color: var(--text-color); margin: 0 0 5px; }
+        .notification-body { font-size: 0.9em; color: var(--text-light); margin: 0 0 10px; }
+        .notification-date { font-size: 0.8em; color: #aaa; }
+        
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-left-icons">
+            <a href="#" class="header-icon" id="settings-header-btn"><i class="fa-solid fa-gear"></i></a>
+        </div>
+        <h1>AQARAT 24</h1>
+        <a href="#" class="header-icon" id="profile-header-btn"><i class="fa-solid fa-user"></i></a>
+    </header>
+    <main>
+        <div id="home-page" class="page-content active">
+            <h2 class="section-title" data-translate="allPosts"></h2>
+            
+            <div class="home-search-container">
+                <div class="form-group">
+                    <div class="input-with-icon">
+                        <i class="fa-solid fa-search"></i>
+                        <input type="search" id="home-search-input">
+                    </div>
+                </div>
+                <details class="home-search-filter-details">
+                    <summary data-translate="filter"></summary>
+                    <div class="filter-content">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label data-translate="minPriceLabel"></label>
+                                <input type="number" id="home-filter-min-price" placeholder="0">
+                            </div>
+                            <div class="form-group">
+                                <label data-translate="maxPriceLabel"></label>
+                                <input type="number" id="home-filter-max-price" placeholder="">
+                            </div>
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label data-translate="minAreaLabel"></label>
+                                <input type="number" id="home-filter-min-area" placeholder="0">
+                            </div>
+                            <div class="form-group">
+                                <label data-translate="maxAreaLabel"></label>
+                                <input type="number" id="home-filter-max-area" placeholder="">
+                            </div>
+                        </div>
+                        <button type="button" id="home-filter-reset-btn" class="submit-btn" style="background-color: var(--text-light); margin-top: 10px;" data-translate="resetBtn"></button>
+                    </div>
+                </details>
+            </div>
+
+            <div id="posts-grid-container" class="posts-grid"></div>
+            <div id="load-more-container" style="text-align: center; padding: 20px;">
+                <button id="load-more-btn" class="submit-btn" style="width: auto; padding: 10px 30px;"></button>
+            </div>
+        </div>
+        <div id="apartments-page" class="page-content">
+            <h2 class="section-title" data-translate="apartment"></h2>
+            <div id="apartments-grid-container" class="posts-grid"></div>
+        </div>
+        <div id="add-page" class="page-content"></div>
+        <div id="map-page" class="page-content">
+            <div id="main-map-container">
+                 <div id="custom-layer-control-container"></div>
+            </div>
+            <div class="map-controls"></div>
+        </div>
+        <div id="profile-page" class="page-content"></div>
+        <div id="favorites-page" class="page-content"></div>
+        <div id="settings-page" class="page-content"></div>
+        <div id="post-detail-page" class="page-content"></div>
+        <div id="admin-page" class="page-content"></div>
+        <div id="edit-profile-page" class="page-content"></div>
+    </main>
+    
+    <nav class="bottom-nav">
+        <a href="#" class="nav-link active" data-page="home-page"><i class="fa-solid fa-house"></i><span data-translate="navHome"></span></a>
+        <a href="#" class="nav-link" data-page="apartments-page"><i class="fa-solid fa-building"></i><span data-translate="apartment"></span></a>
+        <a href="#" id="fab-add-btn" class="nav-link" data-page="add-page"><i class="fa-solid fa-plus"></i></a>
+        <a href="#" class="nav-link" data-page="favorites-page"><i class="fa-solid fa-star"></i><span data-translate="navFavorites"></span></a>
+        <a href="#" class="nav-link" data-page="map-page"><i class="fa-solid fa-map-location-dot"></i><span data-translate="navMap"></span></a>
+    </nav>
+
+    <!-- Modal for Private Data -->
+    <div id="private-data-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="private-data-modal-title">Tomarekê Nû</h2>
+                <span class="close-btn">&times;</span>
+            </div>
+            <form id="private-data-form">
+                <input type="hidden" id="private-record-id">
+                <div class="form-group">
+                    <label>Nav û Nîşan</label>
+                    <input type="text" id="private-location" required>
+                </div>
+                 <div class="form-grid">
+                    <div class="form-group">
+                        <label>Buhay</label>
+                        <input type="text" id="private-price">
+                    </div>
+                    <div class="form-group">
+                        <label>Rûber (م²)</label>
+                        <input type="number" id="private-area">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Jimara Têlefonê</label>
+                    <input type="tel" id="private-phone">
+                </div>
+                <div class="form-group">
+                    <label>Têbînî</label>
+                    <textarea id="private-notes" rows="3"></textarea>
+                </div>
+                <button type="submit" class="submit-btn">Paşkeft bike</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Login Modal -->
+    <div id="admin-login-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Têketina Admin</h2>
+                <span class="close-btn">&times;</span>
+            </div>
+            <form id="admin-login-form">
+                <div class="form-group">
+                    <label>Navê Bikarhêner</label>
+                    <input type="text" id="admin-username" required>
+                </div>
+                <div class="form-group">
+                    <label>Peyva Nihênî</label>
+                    <input type="password" id="admin-password" required>
+                </div>
+                <button type="submit" class="submit-btn">Têkeve</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Edit Profile Modal (Now replaced by a page, but keeping the div just in case) -->
+    <div id="edit-profile-modal" class="modal"></div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+
+<script>
+
+    // *** گرنگ: ڤی کۆدی ژ Firebase بینە و ل ڤێرێ بدانە ***
+    const firebaseConfig = {
+  apiKey: "AIzaSyBLp9kxXOrR03VQuDT3ubgkKWsRhhy1Co8",
+  authDomain: "aqarat24-1bfd0.firebaseapp.com",
+  projectId: "aqarat24-1bfd0",
+  storageBucket: "aqarat24-1bfd0.firebasestorage.app",
+  messagingSenderId: "277101382699",
+  appId: "1:277101382699:web:6fe815d8554aefb4532e6e",
+  measurementId: "G-ERRDLL3992"
+    };
+    
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+document.addEventListener('DOMContentLoaded', function() {
+    const translations = {
+        loginTitle: { "ku-bad": "چوونەژوور", "ku-sor": "چوونەژوورەوە", "ar": "تسجيل الدخول", "en": "Login" },
+        registerTitle: { "ku-bad": "خۆ تۆمارکرن", "ku-sor": "خۆتۆمارکردن", "ar": "إنشاء حساب", "en": "Register" },
+        forgotPasswordTitle: { "ku-bad": "ژبیرکرنا پەیڤا نهێنی", "ku-sor": "وشەی نهێنیت لەبیرکردووە؟", "ar": "نسيت كلمة المرور", "en": "Forgot Password" },
+        updatePasswordTitle: { "ku-bad": "نووکرنا پەیڤا نهێنی", "ku-sor": "نوێکردنەوەی وشەی نهێنی", "ar": "تحديث كلمة المرور", "en": "Update Password" },
+        emailLabel: { "ku-bad": "ئیمەیل", "ku-sor": "ئیمەیڵ", "ar": "البريد الإلكتروني", "en": "Email" },
+        passwordLabel: { "ku-bad": "پەیڤا نهێنی", "ku-sor": "وشەی نهێنی", "ar": "كلمة المرور", "en": "Password" },
+        nameLabel: { "ku-bad": "ناڤ", "ku-sor": "ناو", "ar": "الاسم", "en": "Name" },
+        sendCodeBtn: { "ku-bad": "کۆدی بهنێرە", "ku-sor": "کۆد بنێرە", "ar": "أرسل الرمز", "en": "Send Code" },
+        resetPasswordBtn: { "ku-bad": "گوهۆڕین", "ku-sor": "گۆڕین", "ar": "تغيير", "en": "Change" },
+        registerBtn: { "ku-bad": "خۆ تۆمار بکە", "ku-sor": "خۆتۆماربکە", "ar": "تسجيل", "en": "Register" },
+        noAccount: { "ku-bad": "هەژمارا تە نینە؟", "ku-sor": "هەژمارەت نییە؟", "ar": "ليس لديك حساب؟", "en": "Don't have an account?" },
+        createOne: { "ku-bad": "ئێکێ دروست بکە", "ku-sor": "دانەیەک دروست بکە", "ar": "أنشئ واحداً", "en": "Create one" },
+        haveAccount: { "ku-bad": "هەژمارا تە هەیە؟", "ku-sor": "هەژمارەت هەیە؟", "ar": "لديك حساب؟", "en": "Have an account?" },
+        backToLogin: { "ku-bad": "زڤرین بۆ چوونەژوور", "ku-sor": "گەڕانەوە بۆ چوونەژوورەوە", "ar": "العودة لتسجيل الدخول", "en": "Back to Login" },
+        forgotPasswordLink: { "ku-bad": "پەیڤا نهێنی ژبیر کر؟", "ku-sor": "وشەی نهێنیت لەبیرکردووە؟", "ar": "نسيت كلمة المرور؟", "en": "Forgot Password?" },
+        verifyEmailTitle: { "ku-bad": "پشتراستکرنا ئیمەیلی", "ku-sor": "پشتڕاستکردنەوەی ئیمەیڵ", "ar": "التحقق من البريد الإلكتروني", "en": "Verify Email" },
+        verificationCode: { "ku-bad": "کۆدێ پشتراستکرنێ", "ku-sor": "کۆدی پشتڕاستکردنەوە", "ar": "رمز التحقق", "en": "Verification Code" },
+        verifyBtn: { "ku-bad": "پشتراست بکە", "ku-sor": "پشتڕاستی بکەوە", "ar": "تحقق", "en": "Verify" },
+        enterAllFields: { "ku-bad": "تکایە هەمی خانەیان پڕ بکە.", "ku-sor": "تکایە هەموو خانەکان پڕبکەوە.", "ar": "يرجى ملء جميع الحقول.", "en": "Please fill all fields." },
+        emailInUse: { "ku-bad": "بکارهێنەرەک ب ڤی ئیمەیلی یێ هەی.", "ku-sor": "بەکارهێنەرێک بەم ئیمەیڵە هەیە.", "ar": "هذا البريد الإلكتروني مستخدم بالفعل.", "en": "This email is already in use." },
+        verificationCodeSent: { "ku-bad": "کۆدێ پشتراستکرنێ بۆ ئیمەیلێ تە هاتە هنارتن.", "ku-sor": "کۆدی پشتڕاستکردنەوە بۆ ئیمەیڵەکەت نێردرا.", "ar": "تم إرسال رمز التحقق إلى بريدك الإلكتروني.", "en": "Verification code sent to your email." },
+        invalidCode: { "ku-bad": "کۆد خەلەتە.", "ku-sor": "کۆد هەڵەیە.", "ar": "الرمز غير صحيح.", "en": "Invalid code." },
+        registrationSuccess: { "ku-bad": "هەژمارا تە ب سەرکەفتی هاتە دروستکرن.", "ku-sor": "هەژمارەکەت بە سەرکەوتوویی دروستکرا.", "ar": "تم إنشاء حسابك بنجاح.", "en": "Your account has been created successfully." },
+        loginError: { "ku-bad": "ئیمەیل یان پەیڤا نهێنی خەلەتە.", "ku-sor": "ئیمەیڵ یان وشەی نهێنی هەڵەیە.", "ar": "البريد الإلكتروني أو كلمة المرور غير صحيحة.", "en": "Incorrect email or password." },
+        userNotFound: { "ku-bad": "هیچ بکارهێنەرەک ب ڤی ئیمەیلی نەهاتە دیتن.", "ku-sor": "هیچ بەکارهێنەرێک بەم ئیمەیڵە نەدۆزرایەوە.", "ar": "لم يتم العثور على مستخدم بهذا البريد الإلكتروني.", "en": "No user found with this email." },
+        passwordChangedSuccess: { "ku-bad": "پەیڤا نهێنی ب سەرکەفتیانە هاتە گوهۆڕین.", "ku-sor": "وشەی نهێنی بە سەرکەوتوویی گۆڕدرا.", "ar": "تم تغيير كلمة المرور بنجاح.", "en": "Password changed successfully." },
+        passwordsNoMatch: { "ku-bad": "پەیڤێن نهێنی وەکو ئێک نینن.", "ku-sor": "وشە نهێنییەکان وەک یەک نینن.", "ar": "كلمتا المرور غير متطابقتين.", "en": "Passwords do not match." },
+        mustLoginToAdd: { "ku-bad": "تکایە سەرەتا خۆ تۆمار بکە یان بچۆ ژوور.", "ku-sor": "تکایە سەرەتا خۆت تۆمار بکە یان بچۆ ژوورەوە.", "ar": "يرجى تسجيل الدخول أو إنشاء حساب أولاً.", "en": "Please log in or register first." },
+        adminLoginError: { "ku-bad": "ناڤ یان پەیڤا نهێنی خەلەتە!", "ku-sor": "ناو یان وشەی نهێنی هەڵەیە!", "ar": "اسم المستخدم أو كلمة المرور غير صحيحة!", "en": "Incorrect username or password!" },
+        notificationSent: { "ku-bad": "ئاگەهداری ب سەرکەفتی هاتە هنارتن.", "ku-sor": "ئاگادارییەکە بە سەرکەوتوویی نێردرا.", "ar": "تم إرسال الإشعار بنجاح.", "en": "Notification sent successfully." },
+        reportSentSuccess: { "ku-bad": "پەیاما تە ب سەرکەفتی هاتە هنارتن.", "ku-sor": "پەیامەکەت بە سەرکەوتوویی نێردرا.", "ar": "تم إرسال رسالتك بنجاح.", "en": "Your message was sent successfully." },
+        filter: { "ku-bad": "فلتەرکرن", "ku-sor": "فیلتەرکردن", "ar": "فلترة", "en": "Filter" },
+        minPriceLabel: { "ku-bad": "کێمترین نرخ", "ku-sor": "کەمترین نرخ", "ar": "أقل سعر", "en": "Min Price" },
+        maxPriceLabel: { "ku-bad": "زێدەترین نرخ", "ku-sor": "بەرزترین نرخ", "ar": "أعلى سعر", "en": "Max Price" },
+        minAreaLabel: { "ku-bad": "کێمترین ڕووبەر (م²)", "ku-sor": "کەمترین ڕووبەر (م²)", "ar": "أقل مساحة (م²)", "en": "Min Area (m²)" },
+        maxAreaLabel: { "ku-bad": "زێدەترین ڕووبەر (م²)", "ku-sor": "بەرزترین ڕووبەر (م²)", "ar": "أعلى مساحة (م²)", "en": "Max Area (m²)" },
+        resetBtn: { "ku-bad": "سفرکرن", "ku-sor": "سڕینەوە", "ar": "إعادة تعيين", "en": "Reset" },
+        homeSearchPlaceholder: {"ku-bad": "ل ناڤ و نیشان یان کۆد بگەڕه...", "ku-sor": "بگەڕێ بەدوای ناونیشان یان کۆد...", "ar": "ابحث بالعنوان أو الرمز...", "en": "Search by location or code..."},
+        profileMyPosts: {"ku-bad": "پۆستێن من", "ku-sor": "پۆستەکانم", "ar": "منشوراتي", "en": "My Posts"},
+        notifications: {"ku-bad": "ئاگەهداری", "ku-sor": "ئاگادارییەکان", "ar": "الإشعارات", "en": "Notifications"},
+        noNotifications: {"ku-bad": "چ ئاگەهداری نینن.", "ku-sor": "هیچ ئاگادارییەک نییە.", "ar": "لا توجد إشعارات.", "en": "No notifications."},
+        adminShowPosts: {"ku-bad": "پۆستان نیشاندە", "ku-sor": "پۆستەکان پیشان بدە", "ar": "عرض المنشورات", "en": "Show Posts"},
+        adminShowUsers: {"ku-bad": "بکارهێنەران نیشاندە", "ku-sor": "بەکارهێنەران پیشان بدە", "ar": "عرض المستخدمين", "en": "Show Users"},
+        adminSendNotifications: {"ku-bad": "هنارتنا ئاگەهداریان", "ku-sor": "ناردنی ئاگاداری", "ar": "إرسال الإشعارات", "en": "Send Notifications"},
+        adminAllNotifications: {"ku-bad": "هەمی ئاگەهداریێن هاتینە هنارتن", "ku-sor": "هەموو ئاگادارییە نێردراوەکان", "ar": "كل الإشعارات المرسلة", "en": "All Sent Notifications"},
+        adminPrivateData: {"ku-bad": "داتایێن تایبەت", "ku-sor": "داتای تایبەت", "ar": "البيانات الخاصة", "en": "Private Data"},
+        adminTotalUsers: {"ku-bad": "هەمی بکارهێنەر", "ku-sor": "هەموو بەکارهێنەران", "ar": "كل المستخدمين", "en": "Total Users"},
+        adminPendingPosts: {"ku-bad": "پۆستێن چاڤەرێ", "ku-sor": "پۆستە چاوەڕوانکراوەکان", "ar": "منشورات قيد الانتظار", "en": "Pending Posts"},
+        adminApprovedPosts: {"ku-bad": "پۆستێن پەسەندکری", "ku-sor": "پۆستە پەسەندکراوەکان", "ar": "المنشورات الموافق عليها", "en": "Approved Posts"},
+        adminUsersTitle: {"ku-bad": "بکارهێنەرێن تۆمارکری", "ku-sor": "بەکارهێنەرە تۆمارکراوەکان", "ar": "المستخدمون المسجلون", "en": "Registered Users"},
+        usersSearchPlaceholder: {"ku-bad": "ل ناڤ یان ئیمەیلێ بکارهێنەران بگەڕه...", "ku-sor": "بگەڕێ بەدوای ناو یان ئیمەیڵی بەکارهێنەر...", "ar": "ابحث بالاسم أو البريد الإلكتروني...", "en": "Search by user name or email..."},
+        tableName: {"ku-bad": "ناڤ", "ku-sor": "ناو", "ar": "الاسم", "en": "Name"},
+        tableEmail: {"ku-bad": "ئیمەیل", "ku-sor": "ئیمەیڵ", "ar": "البريد الإلكتروني", "en": "Email"},
+        tablePassword: {"ku-bad": "پەیڤا نهێنی", "ku-sor": "وشەی نهێنی", "ar": "كلمة المرور", "en": "Password"},
+        tableActions: {"ku-bad": "چالاکی", "ku-sor": "کارەکان", "ar": "الإجراءات", "en": "Actions"},
+        adminPanelTitle: { "ku-bad": "پانەلا ئادمنی", "ku-sor": "پەناڵی ئەدمین", "ar": "لوحة التحكم", "en": "Admin Panel" },
+        showPendingOnly: { "ku-bad": "بتنێ یێن چاڤەرێ", "ku-sor": "تەنها چاوەڕوانکراو", "ar": "عرض قيد الانتظار فقط", "en": "Show Pending Only" },
+        backToAdmin: { "ku-bad": "زڤڕین بۆ پانەلێ", "ku-sor": "گەڕانەوە بۆ پەناڵ", "ar": "العودة للوحة التحكم", "en": "Back to Panel" },
+        navHome: { "ku-bad": "مال", "ku-sor": "سەرەکی", "ar": "الرئيسية", "en": "Home" },
+        navFavorites: { "ku-bad": "هەلبژارتی", "ku-sor": "دڵخوازەکان", "ar": "المفضلة", "en": "Favorites" },
+        navAdd: { "ku-bad": "زیدە کرن", "ku-sor": "زیادکردن", "ar": "إضافة", "en": "Add" },
+        navMap: { "ku-bad": "نەخشە", "ku-sor": "نەخشە", "ar": "الخريطة", "en": "Map" },
+        editProfileName: { "ku-bad": "دەستکاریا ناڤی بکە", "ku-sor": "دەستکاری ناو بکە", "ar": "تعديل الاسم", "en": "Edit Name" },
+        allPosts: { "ku-bad": "هەمی پۆست", "ku-sor": "هەموو پۆستەکان", "ar": "كل الإعلانات", "en": "All Posts" },
+        forSale: { "ku-bad": "بۆ فرۆتنێ", "ku-sor": "بۆ فرۆشتن", "ar": "للبيع", "en": "For Sale" },
+        forRent: { "ku-bad": "بۆ کرێ", "ku-sor": "بۆ کرێ", "ar": "للإيجار", "en": "For Rent" },
+        searchPlaceholder: { "ku-bad": "ل پۆستێن خۆ بگەڕه...", "ku-sor": "لە پۆستەکانت بگەڕێ...", "ar": "ابحث في إعلاناتك...", "en": "Search your posts..." },
+        all: { "ku-bad": "هەمی", "ku-sor": "هەمووی", "ar": "الكل", "en": "All" },
+        sold: { "ku-bad": "فرۆشتی", "ku-sor": "فرۆشراوەکان", "ar": "المباعة", "en": "Sold" },
+        rented: { "ku-bad": "ب کرێدای", "ku-sor": "بەکرێدراوەکان", "ar": "المؤجرة", "en": "Rented" },
+        logout: { "ku-bad": "دەرکەفتن", "ku-sor": "چوونەدەرەوە", "ar": "خروج", "en": "Logout" },
+        editBtn: { "ku-bad": "دەستکاری", "ku-sor": "دەستکاری", "ar": "تعديل", "en": "Edit" },
+        deleteBtn: { "ku-bad": "ژێبرن", "ku-sor": "سڕینەوە", "ar": "حذف", "en": "Delete" },
+        markSold: { "ku-bad": "فرۆشتن", "ku-sor": "فرۆشتن", "ar": "تم البيع", "en": "Mark Sold" },
+        wasSold: { "ku-bad": "هاتە فرۆتن", "ku-sor": "فرۆشرا", "ar": "تم البيع", "en": "Sold" },
+        wasRented: { "ku-bad": "هاتە کرێدان", "ku-sor": "بەکرێدرا", "ar": "تم التأجير", "en": "Rented" },
+        settingsTitle: { "ku-bad": "سێتینگ", "ku-sor": "ڕێکخستنەکان", "ar": "الإعدادات", "en": "Settings" },
+        language: { "ku-bad": "زمان", "ku-sor": "زمان", "ar": "اللغة", "en": "Language" },
+        colorMode: { "ku-bad": "دۆخێ ڕەنگی", "ku-sor": "دۆخی ڕەنگ", "ar": "وضع الألوان", "en": "Color Mode" },
+        lightMode: { "ku-bad": "ڕۆناهی", "ku-sor": "ڕووناکی", "ar": "فاتح", "en": "Light" },
+        darkMode: { "ku-bad": "تاری", "ku-sor": "تاریک", "ar": "داكن", "en": "Dark" },
+        contactUs: { "ku-bad": "پەیوەندیێ ب مە بکە", "ku-sor": "پەیوەندیمان پێوە بکە", "ar": "تواصل معنا", "en": "Contact Us" },
+        addFormTitle: { "ku-bad": "مولکەکێ نوو زێدە بکە", "ku-sor": "موڵکێکی نوێ زیاد بکە", "ar": "إضافة عقار جديد", "en": "Add New Property" },
+        editFormTitle: { "ku-bad": "دەستکاریا پۆستی بکە", "ku-sor": "دەستکاری پۆست بکە", "ar": "تعديل الإعلان", "en": "Edit Post" },
+        mainInfo: { "ku-bad": "پێزانینێن سەرەکی", "ku-sor": "زانیاری سەرەکی", "ar": "المعلومات الأساسية", "en": "Basic Info" },
+        propertySpecs: { "ku-bad": "تایبەتمەندیێن مولکی", "ku-sor": "تایبەتمەندی موڵک", "ar": "مواصفات العقار", "en": "Property Specs" },
+        propertyImage: { "ku-bad": "وێنێ مولکی", "ku-sor": "وێنەی موڵک", "ar": "صور العقار", "en": "Property Images" },
+        chooseImage: { "ku-bad": "وێنەیان هەلبژێرە", "ku-sor": "وێنەکان هەڵبژێرە", "ar": "اختر صور", "en": "Choose Images" },
+        listingType: { "ku-bad": "جورێ داخازیێ", "ku-sor": "جۆری داواکاری", "ar": "نوع الطلب", "en": "Listing Type" },
+        propertyType: { "ku-bad": "جورێ مولکی", "ku-sor": "جۆری موڵک", "ar": "نوع العقار", "en": "Property Type" },
+        price: { "ku-bad": "بها", "ku-sor": "نرخ", "ar": "السعر", "en": "Price" },
+        phone: { "ku-bad": "ژمارا موبایلێ", "ku-sor": "ژمارەی مۆبایل", "ar": "رقم الهاتف", "en": "Phone Number" },
+        location: { "ku-bad": "ناڤ و نیشان", "ku-sor": "ناونیشان", "ar": "العنوان", "en": "Location" },
+        area: { "ku-bad": "ڕووبەر (م²)", "ku-sor": "ڕووبەر (م²)", "ar": "المساحة (م²)", "en": "Area (m²)" },
+        direction: { "ku-bad": "ئاراستە", "ku-sor": "ئاراستە", "ar": "الاتجاه", "en": "Direction" },
+        floors: { "ku-bad": "ژمارا نهومان", "ku-sor": "ژمارەی نهۆمەکان", "ar": "عدد الطوابق", "en": "Number of Floors" },
+        bedrooms: { "ku-bad": "ژ. نڤستنێ", "ku-sor": "ژ. نوستن", "ar": "غرف نوم", "en": "Bedrooms" },
+        bathrooms: { "ku-bad": "ژ. گەرماڤا", "ku-sor": "ژ. گەرماو", "ar": "حمامات", "en": "Bathrooms" },
+        garden: { "ku-bad": "باخچە؟", "ku-sor": "باخچە؟", "ar": "حديقة؟", "en": "Garden?" },
+        mapLocation: { "ku-bad": "جهی لسەر نەخشەیی", "ku-sor": "شوێن لەسەر نەخشە", "ar": "الموقع على الخريطة", "en": "Location on Map" },
+        postButton: { "ku-bad": "پۆست بکە", "ku-sor": "بڵاوی بکەرەوە", "ar": "نشر الإعلان", "en": "Post" },
+        updateButton: { "ku-bad": "نوو بکە", "ku-sor": "نوێکردنەوە", "ar": "تحديث", "en": "Update" },
+        yes: { "ku-bad": "بەلێ", "ku-sor": "بەڵێ", "ar": "نعم", "en": "Yes" },
+        no: { "ku-bad": "نەخێر", "ku-sor": "نەخێر", "ar": "لا", "en": "No" },
+        house: { "ku-bad": "خانی", "ku-sor": "خانوو", "ar": "منزل", "en": "House" },
+        apartment: { "ku-bad": "شوقە", "ku-sor": "شوقە", "ar": "شقة", "en": "Apartment" },
+        villa: { "ku-bad": "ڤێلا", "ku-sor": "ڤێلا", "ar": "فيلا", "en": "Villa" },
+        farm: { "ku-bad": "مەزرەعە", "ku-sor": "کێڵگە", "ar": "مزرعة", "en": "Farm" },
+        land: { "ku-bad": "ئەرد", "ku-sor": "زەوی", "ar": "أرض", "en": "Land" },
+        commercial: { "ku-bad": "بازرگانی", "ku-sor": "بازرگانی", "ar": "تجاري", "en": "Commercial" },
+        favEmpty: { "ku-bad": "هیچ پۆستەکێ هەلبژارتی نینە.", "ku-sor": "هیچ پۆستێکی دڵخواز نییە.", "ar": "لا توجد إعلانات مفضلة.", "en": "No favorite posts." },
+        confirmDelete: { "ku-bad": "تو پشتراستی دێ ڤی پۆستی ژێبەی؟", "ku-sor": "دڵنیایت لە سڕینەوەی ئەم پۆستە؟", "ar": "هل أنت متأكد من حذف هذا الإعلان؟", "en": "Are you sure you want to delete this post?" },
+        promptNewName: { "ku-bad": "ناڤێ خۆ یێ نوو بنڤیسە:", "ku-sor": "ناوە نوێکەت بنووسە:", "ar": "اكتب اسمك الجديد:", "en": "Enter your new name:" },
+        viewDetails: { "ku-bad": "پێزانینان ببینە", "ku-sor": "ورده‌كاری ببینه‌", "ar": "عرض التفاصيل", "en": "View Details" },
+        postNotFound: { "ku-bad": "ئەڤ پۆستە نەهاتە دیتن.", "ku-sor": "ئەم پۆستە نەدۆزرایەوە.", "ar": "لم يتم العثور על الإعلان.", "en": "Post not found." },
+        locationFound: { "ku-bad": "جهێ تە هاتە دیتن.", "ku-sor": "شوێنەکەت دۆزرایەوە.", "ar": "تم العثور על موقعك.", "en": "Location found." },
+        locationNotFound: { "ku-bad": "نەشهێین جهێ تە ببینین.", "ku-sor": "نەتوانرا شوێنەکەت بدۆزرێتەوە.", "ar": "لم نتمكن من العثور על موقعك.", "en": "Could not find your location." },
+        buyerTipsTitle: { "ku-bad": "ئامۆژگاری بۆ کڕیاران", "ku-sor": "ئامۆژگاری بۆ کڕیاران", "ar": "نصائح للمشترين", "en": "Tips for Buyers" },
+        buyerTip1: { "ku-bad": "بودجە و داراییا خۆ دیار بکە.", "ku-sor": "بودجە و داراییت دیاری بکە.", "ar": "حدد ميزانيتك وتمويلك.", "en": "Determine your budget and financing." },
+        buyerTip2: { "ku-bad": "پشکنینەکا تەمام بۆ مولکی بکە.", "ku-sor": "پشکنینێکی تەواو بۆ موڵکەکە بکە.", "ar": "قم بفحص العقار بشكل كامل.", "en": "Thoroughly inspect the property." },
+        buyerTip3: { "ku-bad": "پشتراست بە ژ بەلگەنامەیێن یاسایی.", "ku-sor": "دڵنیابە لە بەڵگەنامە یاساییەکان.", "ar": "تأكد من المستندات القانونية.", "en": "Verify the legal documents." },
+        buyerTip4: { "ku-bad": "لسەر بهای دانوستاندنێ بکە.", "ku-sor": "لەسەر نرخەکەی دانوستان بکە.", "ar": "تفاوض على السعر.", "en": "Negotiate the price." },
+        buyerTip5: { "ku-bad ": "جهـ و خزمەتگوزارییان ل بەرچاڤ بگرە.", "ku-sor": "شوێن و خزمەتگوزارییەکان لەبەرچاو بگرە.", "ar": "فكر في الموقع والخدمات.", "en": "Consider the location and amenities." },
+        sellerTipsTitle: { "ku-bad": "ئامۆژگاری بۆ فرۆشیاران", "ku-sor": "ئامۆژگاری بۆ فرۆشیاران", "ar": "نصائح للبائعين", "en": "Tips for Sellers" },
+        sellerTip1: { "ku-bad": "بهایەکێ گونجای بۆ مولکێ خۆ بدانە.", "ku-sor": "نرخێکی گونجاو بۆ موڵکەکەت دابنێ.", "ar": "حدد سعراً واقعياً لعقارك.", "en": "Set a realistic price for your property." },
+        sellerTip2: { "ku-bad": "مولکێ خۆ پاقژ و ئامادە بکە.", "ku-sor": "موڵکەکەت پاک و ئامادە بکە.", "ar": "نظّف وحضّر عقارك جيداً.", "en": "Clean and prepare your property." },
+        sellerTip3: { "ku-bad": "وێنەیێن کوالێتی بلند بگرە.", "ku-sor": "وێنەی کوالێتی بەرز بگرە.", "ar": "التقط صوراً عالية الجودة.", "en": "Take high-quality photos." },
+        sellerTip4: { "ku-bad": "د زانیاریان دا شەفاف و ڕاستگۆ بە.", "ku-sor": "لە زانیارییەکاندا شەفاف و ڕاستگۆ بە.", "ar": "كن شفافاً وصادقاً في المعلومات.", "en": "Be transparent and honest in the details." },
+        sellerTip5: { "ku-bad": "هەموو بەلگەنامەیێن پێدڤی ئامادە بکە.", "ku-sor": "هەموو بەڵگەنامە پێویستەکان ئامادە بکە.", "ar": "اجمع كل المستندات اللازمة.", "en": "Gather all necessary documents." },
+        priceTypeNumeric: { "ku-bad": "بها بنڤیسە", "ku-sor": "نرخ بنووسە", "ar": "إدخال السعر", "en": "Enter Price" },
+        priceTypeSpecial: { "ku-bad": "بهایێ تایبەت", "ku-sor": "نرخی تایبەت", "ar": "سعر خاص", "en": "Special Price" },
+        isZero: { "ku-bad": "ئەڤ مولکە سفرە؟", "ku-sor": "ئەم موڵکە تازەیە؟", "ar": "هل العقار جديد؟", "en": "Is this property new?" },
+        zero: { "ku-bad": "صفر", "ku-sor": "تازە", "ar": "جديد", "en": "New" },
+        pending: { "ku-bad": "یێ چاڤەرێ", "ku-sor": "چاوەڕوان", "ar": "قيد الانتظار", "en": "Pending" },
+        approveBtn: { "ku-bad": "پەسەندکرن", "ku-sor": "پەسەندکردن", "ar": "موافقة", "en": "Approve" },
+        postSubmittedSuccess: { "ku-bad": "پۆستێ تە بۆ پێداچوونێ هاتە هنارتن", "ku-sor": "پۆستەکەت بۆ پێداچوون نێردرا", "ar": "تم إرسال إعلانك للمراجعة", "en": "Your post was submitted for review" },
+        postApprovedSuccess: { "ku-bad": "پۆست ب سەرکەفتی هاتە پەسەندکرن", "ku-sor": "پۆستەکە بە سەرکەوتوویی پەسەندکرا", "ar": "تمت الموافقة على الإعلان بنجاح", "en": "Post approved successfully" },
+        postUpdatedSuccess: { "ku-bad": "پۆست ب سەرکەفتی هاتە نووکرن", "ku-sor": "پۆستەکە بە سەرکەوتوویی نوێکرایەوە", "ar": "تم تحديث الإعلان بنجاح", "en": "Post updated successfully" },
+        reportsTitle: { "ku-bad": "پێشبینی و ئاریشە", "ku-sor": "پێشنیار و کێشەکان", "ar": "الاقتراحات والشكاوى", "en": "Suggestions & Issues" },
+        noReports: { "ku-bad": "چ پێشبینی یان ئاریشە نینن.", "ku-sor": "هیچ پێشنیارێک یان کێشەیەک نییە.", "ar": "لا توجد اقتراحات أو شكاوى.", "en": "No suggestions or issues." },
+        sendReportTitle: { "ku-bad": "پێشبینییەک یان ئاریشەیەک بهنێرە", "ku-sor": "پێشنیارێک یان کێشەیەک بنێرە", "ar": "إرسال اقتراح أو شكوى", "en": "Send a Suggestion or Issue" },
+        reportLabel: { "ku-bad": "پێشبینی یان ئاریشەیا خۆ ل ڤێرێ بنڤیسە", "ku-sor": "پێشنیار یان کێشەکەت لێرە بنووسە", "ar": "اكتب اقتراحك أو شكواك هنا", "en": "Write your suggestion or issue here" },
+        sendReportBtn: { "ku-bad": "هنارتن", "ku-sor": "ناردن", "ar": "إرسال", "en": "Send" },
+        editProfilePageTitle: { "ku-bad": "گوهۆڕینا پروفایلێ", "ku-sor": "گۆڕینی پرۆفایل", "ar": "تعديل الملف الشخصي", "en": "Edit Profile" },
+        profileUpdated: { "ku-bad": "پروفایلێ تە هاتە نویكرن.", "ku-sor": "پڕۆفایلەکەت نوێکرایەوە.", "ar": "تم تحديث ملفك الشخصي.", "en": "Your profile has been updated." },
+    };
+    let currentLang = localStorage.getItem('appLanguage') || 'ku-bad';
+    const elements = { body: document.body };
+    let allPosts, currentUser, allUsers, favoritePostIds, privateProperties, allReports, passwordResetState, registrationState;
+    let lastActivePageBeforeDetail = 'home-page';
+
+    function saveData(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
+    function loadData(key) { return JSON.parse(localStorage.getItem(key)); }
+
+    const samplePosts = [
+        { id: "1726200000001", postCode: "101A", userId: "admin_user_id", listingType: "sale", propertyType: "house", location: "دهۆک, گرێ باسێ", priceType: "numeric", priceValue: "120000", phone: "07501112233", area: "200", direction: "روژهەلات", bedrooms: "4", bathrooms: "3", floors: "2", garden: "yes", isZero: "no", coords: { lat: 36.861, lng: 42.989 }, imageUrls: ["https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg", "https://images.pexels.com/photos/1396122/pexels-photo-1396122.jpeg"], status: null },
+        { id: "1726200000002", postCode: "25B", userId: "admin_user_id", listingType: "rent", propertyType: "apartment", location: "شوقێن گولان, هەولێر", priceType: "numeric", priceValue: "500", phone: "07502223344", area: "150", direction: "باکور", bedrooms: "3", bathrooms: "2", floors: "1", garden: "no", isZero: "yes", coords: { lat: 36.191, lng: 44.009 }, imageUrls: ["https://images.pexels.com/photos/276724/pexels-photo-276724.jpeg"], status: null },
+        { id: "1726200000003", postCode: "V03", userId: "anonymous_user", listingType: "sale", propertyType: "villa", location: "ماسیک, دهۆک", priceType: "special", priceValue: "", phone: "07503334455", area: "600", direction: "روژئاڤا", bedrooms: "6", bathrooms: "5", floors: "3", garden: "yes", isZero: "yes", coords: { lat: 36.883, lng: 42.946 }, imageUrls: [], status: "pending" },
+    ];
+    
+    function initializeData() {
+        if (!loadData('aqaratPosts')) saveData('aqaratPosts', samplePosts);
+        
+        const defaultUser = { 
+            id: 'anonymous_user', 
+            name: 'بکارهێنەرێ نەناس', 
+            pic: 'https://via.placeholder.com/100',
+            isAnonymous: true 
+        };
+        
+        const adminUser = {
+            id: 'admin_user_id',
+            name: 'Admin',
+            email: 'admin',
+            password: 'admin',
+            pic: 'https://via.placeholder.com/100',
+            isAnonymous: false
+        };
+        
+        if (!loadData('currentUser')) saveData('currentUser', defaultUser);
+        if (!loadData('favoritePosts')) saveData('favoritePosts', []);
+        if (!loadData('privateProperties')) saveData('privateProperties', []);
+        if (!loadData('users')) saveData('users', [adminUser]);
+        if (!loadData('notifications')) saveData('notifications', []);
+        if (!loadData('aqaratReports')) saveData('aqaratReports', []);
+
+        allPosts = loadData('aqaratPosts');
+        currentUser = loadData('currentUser');
+        allUsers = loadData('users');
+        favoritePostIds = loadData('favoritePosts');
+        privateProperties = loadData('privateProperties');
+        allReports = loadData('aqaratReports');
+    }
+
+    let editingPostId = null, mainMap, pickerMap, pickerMarker, singlePostMap, markerClusterGroup;
+    let userLocationMarker = null;
+    let defaultCoords = { lat: 36.863, lng: 42.990 }; 
+    let selectedCoords = { ...defaultCoords };
+    let uploadedImages = [];
+    const propertyTypeIcons = { house: 'fa-house-chimney', apartment: 'fa-building', villa: 'fa-house-chimney-window', farm: 'fa-tractor', land: 'fa-mountain-sun', commercial: 'fa-store', default: 'fa-building-shield' };
+    let visiblePostsCount = 6;
+    const postsPerPage = 6;
+    const imagePlaceholder = "data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==";
+    const baseLayers = {
+        'Satelite': L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: 'Tiles &copy; Esri' }),
+        'Sade': L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO' }),
+        'Klasîk': L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' })
+    };
+    let currentTileLayer = baseLayers['Sade'];
+
+    function applyTranslations(lang) {
+        document.documentElement.lang = lang.split('-')[0];
+        document.documentElement.dir = (lang === 'ar' || lang.startsWith('ku')) ? 'rtl' : 'ltr';
+        document.querySelectorAll('[data-translate]').forEach(el => {
+            const key = el.dataset.translate;
+            if (translations[key] && translations[key][lang]) el.textContent = translations[key][lang];
+        });
+        document.getElementById('home-search-input').placeholder = translations.homeSearchPlaceholder[lang];
+        const usersSearchInput = document.getElementById('users-data-search');
+        if (usersSearchInput) {
+            usersSearchInput.placeholder = translations.usersSearchPlaceholder[lang];
+        }
+    }
+
+    function switchPage(pageId) {
+        const currentPage = document.querySelector('.page-content.active');
+        if (currentPage && pageId === 'post-detail-page' && currentPage.id !== 'post-detail-page') {
+            lastActivePageBeforeDetail = currentPage.id;
+        }
+
+        let isMapPage = pageId === 'map-page';
+        let isDetailPage = pageId === 'post-detail-page';
+        let isAdminPage = pageId === 'admin-page';
+        let isEditProfilePage = pageId === 'edit-profile-page';
+        
+        let newClassName = '';
+        if (isMapPage) newClassName = 'map-is-active';
+        if (localStorage.getItem('theme') === 'dark') {
+            newClassName += (newClassName ? ' ' : '') + 'dark-mode';
+        }
+        document.body.className = newClassName;
+
+        document.querySelector('header').style.display = isDetailPage || isMapPage || isAdminPage || isEditProfilePage ? 'none' : 'flex';
+        document.querySelector('.bottom-nav').style.display = isDetailPage || isAdminPage || isEditProfilePage ? 'none' : 'flex';
+        document.querySelectorAll('.page-content').forEach(p => p.classList.toggle('active', p.id === pageId));
+        document.querySelectorAll('.bottom-nav a').forEach(l => l.classList.remove('active'));
+        const activeLink = document.querySelector(`.bottom-nav a[data-page="${pageId}"]`);
+        if(activeLink) activeLink.classList.add('active');
+        
+        if (pageId === 'add-page') {
+            const postToEdit = editingPostId ? allPosts.find(p => p.id === editingPostId) : {};
+            renderAddForm(postToEdit);
+        }
+
+        if (pageId !== 'add-page') editingPostId = null;
+        if (pageId === 'home-page') renderHomePage();
+        if (pageId === 'apartments-page') renderApartmentsPage();
+        if (pageId === 'admin-page') renderAdminPage();
+        if (pageId === 'profile-page') renderProfilePage();
+        if (pageId === 'edit-profile-page') renderEditProfilePage();
+        
+        if (pageId === 'map-page') updateMapControls();
+        
+        setTimeout(() => {
+            if (isMapPage && mainMap) { mainMap.invalidateSize(); renderMapMarkers(); }
+            if (pageId === 'add-page' && pickerMap) pickerMap.invalidateSize();
+            if (isDetailPage && singlePostMap) singlePostMap.invalidateSize();
+        }, 50);
+    }
+
+    function populateStaticHTML() {
+        document.getElementById('profile-page').innerHTML = `
+            <div id="logged-out-view" style="display: none;">
+                <div id="login-container" class="form-container auth-container">
+                    <form id="login-form">
+                        <h2 style="text-align:center;" data-translate="loginTitle"></h2>
+                        <div class="form-group"><label data-translate="emailLabel"></label><input type="email" id="login-identifier" required></div>
+                        <div class="form-group"><label data-translate="passwordLabel"></label><input type="password" id="login-password" required></div>
+                        <a href="#" id="forgot-password-link" style="font-size:0.9em; text-align:right; display:block; margin-top:-10px; margin-bottom:15px;" data-translate="forgotPasswordLink"></a>
+                        <button type="submit" class="submit-btn" data-translate="loginTitle"></button>
+                    </form>
+                     <p class="auth-toggle-link" id="show-register-link"><span data-translate="noAccount"></span> <strong data-translate="createOne"></strong></p>
+                </div>
+                <div id="register-container" class="form-container auth-container" style="display: none;">
+                     <form id="register-form">
+                        <h2 style="text-align:center;" data-translate="registerTitle"></h2>
+                        <div class="form-group"><label data-translate="nameLabel"></label><input type="text" id="register-name" required></div>
+                        <div class="form-group"><label data-translate="emailLabel"></label><input type="email" id="register-email" required></div>
+                        <div class="form-group"><label data-translate="passwordLabel"></label><input type="password" id="register-password" required></div>
+                        <button type="submit" class="submit-btn" data-translate="registerBtn"></button>
+                    </form>
+                    <p class="auth-toggle-link" id="show-login-link"><span data-translate="haveAccount"></span> <strong data-translate="loginTitle"></strong></p>
+                </div>
+                 <div id="verify-email-container" class="form-container auth-container" style="display: none;">
+                    <form id="verify-email-form">
+                        <h2 style="text-align:center;" data-translate="verifyEmailTitle"></h2>
+                        <p style="text-align:center; font-size: 0.9em; color: var(--text-light); margin-top: -10px; margin-bottom: 20px;">کۆدێ بۆ ئیمەیلێ تە هاتی داخل بکە.</p>
+                        <div class="form-group"><label data-translate="verificationCode"></label><input type="number" id="verify-code" required></div>
+                        <button type="submit" class="submit-btn" data-translate="verifyBtn"></button>
+                    </form>
+                    <p class="auth-toggle-link" id="back-to-login-link-3"><strong data-translate="backToLogin"></strong></p>
+                </div>
+                <div id="forgot-password-container" class="form-container auth-container" style="display: none;">
+                    <form id="request-code-form">
+                        <h2 style="text-align:center;" data-translate="forgotPasswordTitle"></h2>
+                        <p style="text-align:center; font-size: 0.9em; color: var(--text-light); margin-top: -10px; margin-bottom: 20px;">ئیمەیلێ خۆ بنڤیسە دا کۆدەک بۆتە بهێت.</p>
+                        <div class="form-group"><label data-translate="emailLabel"></label><input type="email" id="reset-email" required></div>
+                        <button type="submit" class="submit-btn" data-translate="sendCodeBtn"></button>
+                    </form>
+                    <p class="auth-toggle-link" id="back-to-login-link-1"><strong data-translate="backToLogin"></strong></p>
+                </div>
+                 <div id="reset-password-container" class="form-container auth-container" style="display: none;">
+                    <form id="reset-password-form">
+                        <h2 style="text-align:center;" data-translate="updatePasswordTitle"></h2>
+                         <p style="text-align:center; font-size: 0.9em; color: var(--text-light); margin-top: -10px; margin-bottom: 20px;">کۆدێ هاتی و پەیڤا نهێنی یا نوو داخل بکە.</p>
+                        <div class="form-group"><label>کۆد</label><input type="text" id="reset-code" required></div>
+                        <div class="form-group"><label>پەیڤا نهێنی یا نوو</label><input type="password" id="new-password" required></div>
+                        <div class="form-group"><label>دووبارەکرنا پەیڤا نهێنی</label><input type="password" id="confirm-password" required></div>
+                        <button type="submit" class="submit-btn" data-translate="resetPasswordBtn"></button>
+                    </form>
+                    <p class="auth-toggle-link" id="back-to-login-link-2"><strong data-translate="backToLogin"></strong></p>
+                </div>
+            </div>
+            <div id="logged-in-view" style="display: none;">
+                <div class="profile-header">
+                    <div id="profile-pic-container"><img src="https://via.placeholder.com/100" alt="Wêneyê Profaylê" id="profile-pic"></div>
+                    <h2 id="username-display"></h2>
+                </div>
+                <button id="go-to-edit-profile-btn" class="submit-btn" style="margin-top:0; margin-bottom: 20px;"><i class="fa-solid fa-user-pen"></i> <span data-translate="editProfilePageTitle"></span></button>
+                <div id="notifications-section"></div>
+                <div id="my-posts-container"></div>
+                <button id="logout-btn" class="submit-btn" style="background-color: #dc3545;"><i class="fa-solid fa-arrow-right-from-bracket"></i> <span data-translate="logout"></span></button>
+            </div>
+        `;
+        document.getElementById('settings-page').innerHTML = `
+            <div class="form-container">
+                 <h2 data-translate="settingsTitle"></h2>
+                 <div class="info-card" style="padding-top:10px;">
+                     <div class="form-group"><label for="language-select" data-translate="language"></label><select id="language-select"><option value="ku-bad">کوردی (بادینی)</option><option value="ku-sor">کوردی (سۆرانی)</option><option value="ar">عربي</option><option value="en">English</option></select></div>
+                     <div class="form-group"><label data-translate="colorMode"></label><div style="display: flex; align-items: center; justify-content: space-between; padding: 5px 0;"><span data-translate="lightMode"><i class="fa-solid fa-sun"></i> </span><label class="switch"><input type="checkbox" id="dark-mode-toggle"><span class="slider round"></span></label><span data-translate="darkMode"><i class="fa-solid fa-moon"></i> </span></div></div>
+                 </div>
+
+                 <div class="info-card" id="report-card">
+                    <h3 class="info-card-header"><i class="fa-solid fa-flag"></i> <span data-translate="sendReportTitle"></span></h3>
+                    <form id="report-form">
+                        <div class="form-group">
+                            <label data-translate="reportLabel"></label>
+                            <textarea id="report-text" rows="4" placeholder="..." required></textarea>
+                        </div>
+                        <button type="submit" class="submit-btn" data-translate="sendReportBtn"></button>
+                    </form>
+                 </div>
+
+                 <div class="info-card">
+                    <h3 class="info-card-header"><i class="fa-solid fa-lightbulb"></i> <span data-translate="buyerTipsTitle"></span></h3>
+                    <ul>
+                        <li><i class="fa-solid fa-check"></i> <span data-translate="buyerTip1"></span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-translate="buyerTip2"></span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-translate="buyerTip3"></span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-translate="buyerTip4"></span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-translate="buyerTip5"></span></li>
+                    </ul>
+                 </div>
+                 <div class="info-card">
+                    <h3 class="info-card-header"><i class="fa-solid fa-gavel"></i> <span data-translate="sellerTipsTitle"></span></h3>
+                    <ul>
+                        <li><i class="fa-solid fa-check"></i> <span data-translate="sellerTip1"></span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-translate="sellerTip2"></span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-translate="sellerTip3"></span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-translate="sellerTip4"></span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-translate="sellerTip5"></span></li>
+                    </ul>
+                 </div>
+                  <div class="info-card">
+                     <h3 class="info-card-header" data-translate="contactUs"></h3>
+                     <ul class="contact-list" style="padding:0;">
+                        <li><i class="fa-solid fa-phone-volume"></i> <a href="tel:07504542800">0750 454 2800</a></li>
+                        <li><i class="fa-solid fa-phone-volume"></i> <a href="tel:07504176611">0750 417 6611</a></li>
+                        <li><i class="fa-solid fa-phone-volume"></i> <a href="tel:07507100238">0750 710 0238</a></li>
+                     </ul>
+                 </div>
+                 <div class="developer-info"><p class="dev-title">گەشەپێدان</p><p class="dev-name">Omed Abdulwahid</p><div class="dev-contact"><a href="tel:07507100238"><i class="fa-solid fa-phone"></i> 07507100238</a></div></div>
+            </div>`;
+        document.getElementById('add-page').innerHTML = `<form id="add-property-form"></form>`;
+        document.getElementById('favorites-page').innerHTML = `<h2><span data-translate="navFavorites"></span></h2><div id="favorites-container" class="posts-grid"></div>`;
+        document.getElementById('admin-page').innerHTML = `
+            <div id="admin-dashboard" class="admin-view">
+                 <div class="form-container">
+                    <div class="admin-header">
+                        <h2 data-translate="adminPanelTitle"></h2>
+                        <button id="admin-home-btn" class="filter-btn" style="flex-grow:0;"><i class="fa-solid fa-house"></i></button>
+                    </div>
+                    <div class="admin-stats">
+                        <div class="admin-stat-card">
+                            <span class="stat-number" id="pending-posts-count">0</span>
+                            <span class="stat-label" data-translate="adminPendingPosts"></span>
+                        </div>
+                         <div class="admin-stat-card">
+                            <span class="stat-number" id="total-users-count">0</span>
+                            <span class="stat-label" data-translate="adminTotalUsers"></span>
+                        </div>
+                    </div>
+                    <div class="admin-dashboard-nav">
+                        <button id="btn-show-posts" class="submit-btn"><i class="fa-solid fa-list-check"></i> <span data-translate="adminShowPosts"></span></button>
+                        <button id="btn-show-users" class="submit-btn" style="background-color: #5bc0de;"><i class="fa-solid fa-users"></i> <span data-translate="adminShowUsers"></span></button>
+                        <button id="btn-show-notifications" class="submit-btn" style="background-color: #f39c12;"><i class="fa-solid fa-bell"></i> <span data-translate="adminSendNotifications"></span></button>
+                        <button id="btn-show-private-data" class="submit-btn" style="background-color: #6c757d;"><i class="fa-solid fa-lock"></i> <span data-translate="adminPrivateData"></span></button>
+                        <button id="btn-show-reports" class="submit-btn" style="background-color: #c0392b;"><i class="fa-solid fa-flag"></i> <span data-translate="reportsTitle"></span></button>
+                    </div>
+                </div>
+            </div>
+            <div id="admin-posts-view" class="admin-view">
+                 <div class="form-container">
+                    <div class="admin-header">
+                        <h2 data-translate="adminShowPosts"></h2>
+                        <button id="btn-back-to-dashboard-1" class="filter-btn" style="flex-grow:0;"><i class="fa-solid fa-arrow-left"></i></button>
+                    </div>
+                    <div class="admin-columns">
+                        <div class="admin-column">
+                            <h3 data-translate="adminPendingPosts"></h3>
+                            <div id="admin-pending-posts"></div>
+                        </div>
+                        <div class="admin-column">
+                            <h3 data-translate="adminApprovedPosts"></h3>
+                            <div id="admin-approved-posts"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="admin-users-view" class="admin-view">
+                <div class="form-container">
+                    <div class="admin-header">
+                        <h2 data-translate="adminUsersTitle"></h2>
+                        <button id="btn-back-to-dashboard-2" class="filter-btn" style="flex-grow:0;"><i class="fa-solid fa-arrow-left"></i></button>
+                    </div>
+                    <div class="form-group">
+                        <input type="search" id="users-data-search" >
+                    </div>
+                    <div id="users-data-table-container">
+                        <table id="users-data-table">
+                           <thead></thead>
+                           <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+             <div id="admin-private-data-view" class="admin-view">
+                <div class="form-container">
+                    <div class="admin-header">
+                        <h2 data-translate="adminPrivateData"></h2>
+                         <button id="btn-back-to-dashboard-3" class="filter-btn" style="flex-grow:0;"><i class="fa-solid fa-arrow-left"></i></button>
+                    </div>
+                    <button id="btn-add-private-record" class="submit-btn" style="margin-bottom: 20px;"><i class="fa-solid fa-plus"></i> Tomarekê Nû Zêdeke</button>
+                    <div class="form-group">
+                        <input type="search" id="private-data-search" placeholder="ل داتayên taybet بگەڕه...">
+                    </div>
+                    <div id="private-data-table-container">
+                        <table id="private-data-table">
+                           <thead></thead>
+                           <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div id="admin-notifications-view" class="admin-view">
+                <div class="form-container">
+                    <div class="admin-header">
+                        <h2 data-translate="adminSendNotifications"></h2>
+                        <button id="btn-back-to-dashboard-4" class="filter-btn" style="flex-grow:0;"><i class="fa-solid fa-arrow-left"></i></button>
+                    </div>
+                    <form id="send-notification-form" style="margin-bottom:30px;">
+                        <div class="form-group">
+                            <label>ناڤونیشانێ ئاگەهداریێ</label>
+                            <input type="text" id="notification-title" required>
+                        </div>
+                        <div class="form-group">
+                            <label>ناڤەرۆکا ئاگەهداریێ</label>
+                            <textarea id="notification-body" rows="3" required></textarea>
+                        </div>
+                        <button type="submit" class="submit-btn">هنارتن</button>
+                    </form>
+                    <div class="admin-column">
+                        <h3 data-translate="adminAllNotifications"></h3>
+                        <div id="admin-notifications-list"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="admin-reports-view" class="admin-view">
+                 <div class="form-container">
+                    <div class="admin-header">
+                        <h2 data-translate="reportsTitle"></h2>
+                        <button id="btn-back-to-dashboard-5" class="filter-btn" style="flex-grow:0;"><i class="fa-solid fa-arrow-left"></i></button>
+                    </div>
+                    <div id="admin-reports-list"></div>
+                </div>
+            </div>
+        `;
+    }
+    function formatPrice(post) {
+        if (post.status === 'pending') return `<span data-translate="pending"></span>`;
+        if (post.status === 'sold') return `<span data-translate="wasSold"></span>`;
+        if (post.status === 'rented') return `<span data-translate="wasRented"></span>`;
+        switch(post.priceType) {
+            case 'numeric': return post.priceValue ? `$${new Intl.NumberFormat().format(post.priceValue)}` : translations.priceTypeNumeric[currentLang];
+            case 'special': return translations.priceTypeSpecial[currentLang];
+            default: return '';
+        }
+    }
+    function getOverlay(post) {
+        if (post.status === 'sold' || post.status === 'rented') {
+            return `<div class="overlay">${formatPrice(post)}</div>`;
+        }
+        if (post.status === 'pending') {
+            return `<div class="overlay pending">${formatPrice(post)}</div>`;
+        }
+        return '';
+    }
+    
+    function createCardHTML(post, cardType = 'grid') {
+        const priceDisplay = formatPrice(post);
+        const zeroBadge = post.isZero === 'yes' ? `<span class="zero-badge" data-translate="zero"></span>` : '';
+        const postCodeBadge = post.postCode ? `<span class="post-code-badge"><i class="fa-solid fa-hashtag" style="font-size: 0.8em; opacity: 0.8;"></i>${post.postCode}</span>` : '';
+        const overlay = getOverlay(post);
+        const firstImage = (post.imageUrls && post.imageUrls.length > 0) ? post.imageUrls[0] : imagePlaceholder;
+        
+        if (cardType === 'list') { 
+             return `<div class="property-card list-card" data-post-id="${post.id}">
+                        <div class="property-image-container">
+                            <img src="${imagePlaceholder}" data-src="${firstImage}" alt="${post.location}" class="lazy-load">
+                        </div>
+                        <div class="list-card-info">
+                            <h3>${post.location || ''}</h3>
+                            <div class="price">${priceDisplay}</div>
+                        </div>
+                    </div>`;
+        }
+        
+        const fullDetailsHtml = `<div class="story-card-extra-details">
+            <span><i class="fa-solid ${propertyTypeIcons[post.propertyType] || propertyTypeIcons.default}"></i> <span data-translate="${post.propertyType}"></span></span>
+            ${post.bedrooms ? `<span><i class="fa-solid fa-bed"></i> ${post.bedrooms}</span>` : ''}
+            ${post.bathrooms ? `<span><i class="fa-solid fa-bath"></i> ${post.bathrooms}</span>` : ''}
+            ${post.area ? `<span><i class="fa-solid fa-ruler-combined"></i> ${post.area}м²</span>` : ''}
+        </div>`;
+        
+        const cardClass = cardType === 'story' ? 'story-card' : 'grid-card';
+        let infoHtmlBlock = '';
+
+        if (cardType === 'grid') {
+            infoHtmlBlock = `
+                <div class="grid-card-info">
+                    <h3>${post.location || ''}</h3>
+                    <div class="grid-card-bottom-details">
+                        ${post.area ? `<span><i class="fa-solid fa-ruler-combined"></i> ${post.area} м²</span>` : '<span></span>'}
+                        <span class="price">${priceDisplay}</span>
+                    </div>
+                </div>
+            `;
+        } else { 
+            infoHtmlBlock = `
+                <div class="story-card-info">
+                    <div class="location-price">
+                        <h3>${post.location || ''}</h3>
+                        <div class="price">${priceDisplay}</div>
+                    </div>
+                    ${fullDetailsHtml}
+                </div>
+            `;
+        }
+
+        return `<div data-post-id="${post.id}" class="property-card ${cardClass}">
+                    <div class="property-image-container">
+                        ${overlay}
+                        ${zeroBadge}
+                        ${postCodeBadge}
+                        <img src="${imagePlaceholder}" data-src="${firstImage}" alt="${post.location}" class="lazy-load">
+                        ${infoHtmlBlock}
+                    </div>
+                </div>`;
+    }
+
+    
+    const lazyLoadObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const img = entry.target;
+                img.src = img.dataset.src;
+                img.classList.add('loaded');
+                observer.unobserve(img);
+            }
+        });
+    }, { rootMargin: "0px 0px 200px 0px" });
+
+    function getPublicPosts() {
+        return allPosts.filter(p => p.status !== 'pending');
+    }
+    function renderAll() { 
+        filterAndRenderHomePage(); 
+        renderApartmentsPage(); 
+        renderProfilePage(); 
+        renderFavoritesPage(); 
+        renderMapMarkers();
+        checkForUnreadNotifications();
+    }
+    
+    function renderHomePage() {
+        filterAndRenderHomePage();
+    }
+    
+    function renderApartmentsPage() {
+        const publicPosts = getPublicPosts();
+        const apartmentPosts = publicPosts.filter(p => p.propertyType === 'apartment');
+        if (elements.apartmentsGridContainer) {
+            elements.apartmentsGridContainer.classList.add('story-view');
+        }
+        renderPosts(elements.apartmentsGridContainer, apartmentPosts, 'story');
+    }
+
+    function renderPosts(container, posts, cardType) {
+        if(!container) return;
+        container.innerHTML = '';
+
+        let postsToRender = posts;
+        if (container.id === 'posts-grid-container') {
+            const hasActiveFilters = elements.homeSearchInput.value || elements.homeFilterMinPrice.value || elements.homeFilterMaxPrice.value || elements.homeFilterMinArea.value || elements.homeFilterMaxArea.value;
+            if (!hasActiveFilters) {
+                 postsToRender = posts.slice(0, visiblePostsCount);
+            }
+        }
+        
+        if (posts.length === 0 || postsToRender.length === 0) {
+             container.innerHTML = `<p class="empty-page-message">هیچ پۆستەک نینە.</p>`;
+             return;
+        }
+
+        postsToRender.forEach(post => {
+            const cardWrapper = document.createElement('div');
+            cardWrapper.innerHTML = createCardHTML(post, cardType);
+            cardWrapper.firstChild.addEventListener('click', (e) => {
+                if(e.target.classList.contains('favorite-toggle')) {
+                    e.stopPropagation();
+                    toggleFavorite(post.id);
+                }
+                else { switchPage('post-detail-page'); renderPostDetailPage(post.id); }
+            });
+            container.append(cardWrapper);
+        });
+
+        document.querySelectorAll('.lazy-load').forEach(img => lazyLoadObserver.observe(img));
+
+        const loadMoreContainer = document.getElementById('load-more-container');
+        if (container.id === 'posts-grid-container' && loadMoreContainer) {
+            const hasActiveFilters = elements.homeSearchInput.value || elements.homeFilterMinPrice.value || elements.homeFilterMaxPrice.value || elements.homeFilterMinArea.value || elements.homeFilterMaxArea.value;
+            
+            if (hasActiveFilters || visiblePostsCount >= posts.length) {
+                 loadMoreContainer.style.display = 'none';
+            } else {
+                 loadMoreContainer.style.display = 'block';
+            }
+        }
+        applyTranslations(currentLang);
+    }
+    function renderPostDetailPage(postId) {
+        const post = allPosts.find(p => p.id === postId);
+        const container = document.getElementById('post-detail-page');
+        if (!post || (post.status === 'pending' && !sessionStorage.getItem('isAdmin') && post.userId !== currentUser.id)) {
+            container.innerHTML = `<p class="empty-page-message" data-translate="postNotFound"></p>`;
+            applyTranslations(currentLang); return;
+        }
+        const isFavorite = favoritePostIds.includes(post.id);
+        const priceDisplay = formatPrice(post);
+        let galleryHtml = '';
+        if (post.imageUrls && post.imageUrls.length > 0) {
+            galleryHtml = post.imageUrls.map(url => `<img src="${url}" alt="${post.location}">`).join('');
+        } else {
+            galleryHtml = `<img src="https://via.placeholder.com/400x400.png?text=Wêne+Nîne" alt="${post.location}">`;
+        }
+        const codeDisplay = post.postCode ? `<span class="detail-code">#${post.postCode}</span>` : '';
+
+        const specItems = [
+            { icon: propertyTypeIcons[post.propertyType] || propertyTypeIcons.default, labelKey: "propertyType", value: translations[post.propertyType] ? translations[post.propertyType][currentLang] : post.propertyType },
+            { icon: 'fa-ruler-combined', labelKey: "area", value: post.area ? `${post.area} م²` : 'N/A' },
+            { icon: 'fa-bed', labelKey: "bedrooms", value: post.bedrooms || 'N/A' },
+            { icon: 'fa-bath', labelKey: "bathrooms", value: post.bathrooms || 'N/A' },
+            { icon: 'fa-layer-group', labelKey: "floors", value: post.floors || 'N/A' },
+            { icon: 'fa-compass', labelKey: "direction", value: post.direction || 'N/A' },
+            { icon: 'fa-leaf', labelKey: "garden", value: post.garden === 'yes' ? translations.yes[currentLang] : translations.no[currentLang] }
+        ].filter(item => item.value && item.value !== 'N/A');
+        
+        const officeNumbersHTML = `
+            <div style="padding: 0 20px; margin-top: -10px; margin-bottom: 20px;">
+                <a href="tel:07504542800" style="text-decoration: none;"><button class="submit-btn" style="background-color: #2c3e50; margin-top: 10px;"><i class="fa-solid fa-phone-volume"></i> Ofîs: 0750 454 2800</button></a>
+                <a href="tel:07504176611" style="text-decoration: none;"><button class="submit-btn" style="background-color: #2c3e50; margin-top: 10px;"><i class="fa-solid fa-phone-volume"></i> Ofîs: 0750 417 6611</button></a>
+                <a href="tel:07507100238" style="text-decoration: none;"><button class="submit-btn" style="background-color: #2c3e50; margin-top: 10px;"><i class="fa-solid fa-phone-volume"></i> Ofîs: 0750 710 0238</button></a>
+            </div>
+        `;
+        
+        container.innerHTML = `<div class="detail-header"><button class="back-btn"><i class="fa-solid fa-arrow-left"></i></button><div class="detail-title-wrapper"><h3 class="detail-title">${post.location}</h3>${codeDisplay}</div><button class="detail-fav-btn ${isFavorite ? 'is-favorite fa-solid' : 'fa-regular'} fa-star" data-post-id="${post.id}"></button></div><div class="detail-gallery">${galleryHtml}</div><div class="detail-main-info"><h2>${post.location}</h2><div class="price">${priceDisplay}</div></div><div class="detail-specs">${specItems.map(item => `<div class="spec-item"><i class="fa-solid ${item.icon}"></i><span class="value">${item.value}</span><span class="label" data-translate="${item.labelKey}"></span></div>`).join('')}</div><div id="single-post-map-container" style="padding: 20px;"><h3 class="section-title" data-translate="mapLocation"></h3><div id="single-post-map"></div></div><div style="padding: 0 20px 20px;"><a href="tel:${post.phone}" style="text-decoration: none;"><button class="submit-btn"><i class="fa-solid fa-phone"></i> <span data-translate="phone"></span>: ${post.phone}</button></a></div>${officeNumbersHTML}`;
+        
+        container.querySelector('.back-btn').addEventListener('click', () => { 
+            switchPage(lastActivePageBeforeDetail || 'home-page');
+        });
+        container.querySelector('.detail-fav-btn').addEventListener('click', (e) => { toggleFavorite(post.id); e.target.classList.toggle('is-favorite'); e.target.classList.toggle('fa-solid'); e.target.classList.toggle('fa-regular'); });
+        if (post.coords && post.coords.lat) initializeSinglePostMap(post.coords); else document.getElementById('single-post-map-container').style.display = 'none';
+        applyTranslations(currentLang);
+    }
+    
+    function renderProfilePage() {
+        if (currentUser.isAnonymous) {
+            document.getElementById('logged-in-view').style.display = 'none';
+            document.getElementById('logged-out-view').style.display = 'block';
+             showAuthView('login-container');
+        } else {
+            document.getElementById('logged-out-view').style.display = 'none';
+            document.getElementById('logged-in-view').style.display = 'block';
+            
+            if(!elements.myPostsContainer) return;
+            elements.usernameDisplay.textContent = currentUser.name;
+            elements.profilePic.src = currentUser.pic;
+
+            renderNotificationsOnProfile();
+
+            elements.myPostsContainer.innerHTML = `
+                <h3 class="section-title" style="margin-top:20px;" data-translate="profileMyPosts"></h3>
+                <div id="profile-posts"></div>
+            `;
+            const myPosts = allPosts.filter(post => post.userId === currentUser.id);
+
+            renderCards(document.getElementById('profile-posts'), myPosts);
+        }
+        applyTranslations(currentLang);
+    }
+
+    function renderNotificationsOnProfile(){
+        const container = document.getElementById('notifications-section');
+        const allNotifications = loadData('notifications') || [];
+        const userNotifications = allNotifications.filter(n => n.userId === currentUser.id || n.userId === 'all');
+        
+        let notificationsHtml = `
+            <details class="info-section" id="notifications-details">
+                <summary data-translate="notifications"></summary>
+                <div class="info-content">`;
+
+        if(userNotifications.length > 0){
+             userNotifications.slice().reverse().forEach(n => {
+                notificationsHtml += `
+                    <div class="notification-card">
+                        <h4 class="notification-title">${n.title}</h4>
+                        <p class="notification-body">${n.body}</p>
+                        <small class="notification-date">${new Date(n.id).toLocaleString()}</small>
+                    </div>
+                `;
+             });
+        } else {
+            notificationsHtml += `<p class="empty-page-message" data-translate="noNotifications"></p>`;
+        }
+        
+        notificationsHtml += '</div></details>';
+        container.innerHTML = notificationsHtml;
+        
+        const detailsElement = document.getElementById('notifications-details');
+        detailsElement.addEventListener('toggle', () => {
+            if (detailsElement.open) {
+                const notifications = loadData('notifications') || [];
+                notifications.forEach(n => {
+                    if(n.userId === currentUser.id || n.userId === 'all'){
+                       n.read = true;
+                    }
+                });
+                saveData('notifications', notifications);
+                checkForUnreadNotifications();
+            }
+        });
+
+    }
+    
+    function renderCards(container, posts) {
+        if (!container) return;
+        container.innerHTML = '';
+        if(posts.length === 0){
+            container.innerHTML = `<p class="empty-page-message">هیچ پۆستەک نینە.</p>`;
+        } else {
+            posts.forEach(post => {
+                const cardWrapper = document.createElement('div');
+                cardWrapper.innerHTML = createCardHTML(post, 'list') + `<div class="card-actions">
+                    <button class="action-btn edit-btn"><i class="fa-solid fa-pencil"></i></button>
+                    <button class="action-btn delete-btn"><i class="fa-solid fa-trash"></i></button></div>`;
+
+                cardWrapper.querySelector('.edit-btn').addEventListener('click', () => editPost(post.id));
+                cardWrapper.querySelector('.delete-btn').addEventListener('click', () => deletePost(post.id));
+                cardWrapper.querySelector('.property-card').addEventListener('click', (e) => {
+                    if(!e.target.closest('.card-actions')) {
+                         switchPage('post-detail-page'); 
+                         renderPostDetailPage(post.id);
+                    }
+                });
+                container.prepend(cardWrapper);
+            });
+            document.querySelectorAll('.lazy-load').forEach(img => lazyLoadObserver.observe(img));
+        }
+    }
+    
+    function showAdminView(viewId) {
+        document.querySelectorAll('.admin-view').forEach(v => v.style.display = 'none');
+        document.getElementById(viewId).style.display = 'block';
+    }
+
+    function renderAdminPage() {
+        showAdminView('admin-dashboard');
+        renderAdminDashboard();
+        renderAdminPostsView();
+        renderAdminPrivateDataView();
+        renderAdminUsersView();
+        renderAdminNotificationsView();
+        renderAdminReportsView();
+    }
+    
+    function renderAdminDashboard() {
+        const pendingPosts = allPosts.filter(p => p.status === 'pending');
+        document.getElementById('pending-posts-count').textContent = pendingPosts.length;
+        document.getElementById('total-users-count').textContent = allUsers.length;
+    }
+
+    function renderAdminPostsView() {
+        const pendingContainer = document.getElementById('admin-pending-posts');
+        const approvedContainer = document.getElementById('admin-approved-posts');
+        pendingContainer.innerHTML = '';
+        approvedContainer.innerHTML = '';
+        
+        const pendingPosts = allPosts.filter(p => p.status === 'pending');
+        const approvedPosts = allPosts.filter(p => p.status !== 'pending');
+
+        const renderAdminCard = (post, container) => {
+            const cardWrapper = document.createElement('div');
+            let actionButtons = '';
+            if(post.status === 'pending') {
+                actionButtons = `<button class="action-btn approve-btn" data-post-id="${post.id}"><i class="fa-solid fa-check"></i> <span data-translate="approveBtn"></span></button>`;
+            } else {
+                actionButtons = `<button class="action-btn sold-btn" data-post-id="${post.id}"><i class="fa-solid fa-tag"></i></button>`;
+            }
+
+            cardWrapper.innerHTML = createCardHTML(post, 'list') + `<div class="card-actions">
+                <button class="action-btn edit-btn"><i class="fa-solid fa-pencil"></i></button>
+                ${actionButtons}
+                <button class="action-btn delete-btn"><i class="fa-solid fa-trash"></i></button></div>`;
+            
+            cardWrapper.querySelector('.property-card').addEventListener('click', (e) => {
+                if(!e.target.closest('.card-actions')) {
+                     switchPage('post-detail-page');
+                     renderPostDetailPage(post.id); 
+                }
+            });
+
+            cardWrapper.querySelector('.edit-btn').addEventListener('click', () => editPost(post.id));
+            cardWrapper.querySelector('.delete-btn').addEventListener('click', () => deletePost(post.id));
+            
+            if(post.status === 'pending') {
+                cardWrapper.querySelector('.approve-btn').addEventListener('click', (e) => approvePost(e.currentTarget.dataset.postId));
+            } else {
+                cardWrapper.querySelector('.sold-btn').addEventListener('click', (e) => togglePostStatus(e.currentTarget.dataset.postId));
+            }
+            container.appendChild(cardWrapper);
+        };
+
+        if(pendingPosts.length === 0) pendingContainer.innerHTML = `<p class="empty-page-message">پۆستێن چاڤەرێ نینن.</p>`;
+        else pendingPosts.forEach(post => renderAdminCard(post, pendingContainer));
+
+        if(approvedPosts.length === 0) approvedContainer.innerHTML = `<p class="empty-page-message">پۆستێن پەسەندکری نینن.</p>`;
+        else approvedPosts.forEach(post => renderAdminCard(post, approvedContainer));
+        
+        document.querySelectorAll('.lazy-load').forEach(img => lazyLoadObserver.observe(img));
+        applyTranslations(currentLang);
+    }
+    
+    function renderAdminUsersView() {
+        const tableHead = document.querySelector('#users-data-table thead');
+        const tableBody = document.querySelector('#users-data-table tbody');
+        const searchTerm = document.getElementById('users-data-search').value.toLowerCase();
+
+        tableHead.innerHTML = `<tr><th data-translate="tableName"></th><th data-translate="tableEmail"></th><th data-translate="tablePassword"></th><th data-translate="tableActions"></th></tr>`;
+        tableBody.innerHTML = '';
+        
+        const filteredUsers = allUsers.filter(u =>
+            u.name.toLowerCase().includes(searchTerm) ||
+            u.email.toLowerCase().includes(searchTerm)
+        );
+
+        if (filteredUsers.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="4" class="empty-page-message">هیچ بکارهێنەرەک نینە.</td></tr>`;
+            return;
+        }
+
+        filteredUsers.forEach(u => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${u.name}</td>
+                <td>${u.email}</td>
+                <td>${u.password}</td>
+                <td>
+                    <button class="action-btn delete-btn" data-id="${u.id}" style="min-width: 40px;"><i class="fa-solid fa-trash"></i></button>
+                </td>
+            `;
+            row.querySelector('.delete-btn').addEventListener('click', () => deleteUser(u.id));
+            tableBody.appendChild(row);
+        });
+    }
+
+    function renderAdminPrivateDataView() {
+        const tableHead = document.querySelector('#private-data-table thead');
+        const tableBody = document.querySelector('#private-data-table tbody');
+        const searchTerm = document.getElementById('private-data-search').value.toLowerCase();
+        
+        tableHead.innerHTML = `<tr><th>Cih</th><th>Buhay</th><th>Rûber</th><th>Telefon</th><th>Têbînî</th><th>Çalakî</th></tr>`;
+        tableBody.innerHTML = '';
+        
+        const filteredData = privateProperties.filter(p =>
+            (p.location && p.location.toLowerCase().includes(searchTerm)) ||
+            (p.price && p.price.toLowerCase().includes(searchTerm)) ||
+            (p.phone && p.phone.includes(searchTerm))
+        );
+
+        if (filteredData.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="6" class="empty-page-message">هیچ داتایەکێ تایبەت نینە.</td></tr>`;
+            return;
+        }
+
+        filteredData.forEach(p => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${p.location || ''}</td>
+                <td>${p.price || ''}</td>
+                <td>${p.area || ''}</td>
+                <td>${p.phone || ''}</td>
+                <td>${p.notes || ''}</td>
+                <td>
+                    <button class="action-btn edit-btn" data-id="${p.id}" style="min-width: 40px;"><i class="fa-solid fa-pencil"></i></button>
+                    <button class="action-btn delete-btn" data-id="${p.id}" style="min-width: 40px;"><i class="fa-solid fa-trash"></i></button>
+                </td>
+            `;
+            row.querySelector('.edit-btn').addEventListener('click', () => openPrivateDataModal(p.id));
+            row.querySelector('.delete-btn').addEventListener('click', () => deletePrivateRecord(p.id));
+            tableBody.appendChild(row);
+        });
+    }
+
+    function renderAdminNotificationsView(){
+        const container = document.getElementById('admin-notifications-list');
+        const notifications = (loadData('notifications') || []).reverse();
+
+        container.innerHTML = '';
+        if(notifications.length > 0){
+             notifications.forEach(n => {
+                const card = document.createElement('div');
+                card.className = 'notification-card';
+                card.innerHTML = `
+                    <h4 class="notification-title">${n.title}</h4>
+                    <p class="notification-body">${n.body}</p>
+                    <small class="notification-date">${new Date(n.id).toLocaleString()}</small>
+                    <button class="action-btn delete-btn" style="position: absolute; top: 10px; left:10px; width: 40px; height: 40px; padding:0; border-radius: 50% !important;"><i class="fa-solid fa-trash"></i></button>
+                `;
+                card.querySelector('.delete-btn').addEventListener('click', () => deleteNotification(n.id));
+                container.appendChild(card);
+             });
+        } else {
+            container.innerHTML = `<p class="empty-page-message" data-translate="noNotifications"></p>`;
+        }
+        applyTranslations(currentLang);
+    }
+    
+    function renderAdminReportsView() {
+        const container = document.getElementById('admin-reports-list');
+        const reports = (loadData('aqaratReports') || []).reverse();
+        container.innerHTML = '';
+
+        if (reports.length > 0) {
+            reports.forEach(r => {
+                const card = document.createElement('div');
+                card.className = 'notification-card';
+                card.innerHTML = `
+                    <p class="notification-body" style="font-size: 1em;">${r.text}</p>
+                    <small class="notification-date">
+                        Ji: <strong>${r.userName || 'Nenas'}</strong> di ${new Date(r.timestamp).toLocaleString()}
+                    </small>
+                    <button class="action-btn delete-btn" style="position: absolute; top: 10px; left:10px; width: 40px; height: 40px; padding:0; border-radius: 50% !important;"><i class="fa-solid fa-trash"></i></button>
+                `;
+                card.querySelector('.delete-btn').addEventListener('click', () => deleteReport(r.id));
+                container.appendChild(card);
+            });
+        } else {
+            container.innerHTML = `<p class="empty-page-message" data-translate="noReports"></p>`;
+        }
+        applyTranslations(currentLang);
+    }
+
+    function deleteNotification(notifId){
+        if(confirm('تو پشتراستی دێ ڤێ ئاگەهداریێ ژێبەی؟')) {
+            let notifications = loadData('notifications') || [];
+            notifications = notifications.filter(n => n.id !== notifId);
+            saveData('notifications', notifications);
+            renderAdminNotificationsView();
+        }
+    }
+
+    function deleteReport(reportId) {
+        if (confirm('تو پشتراستی دێ ڤێ پەیامێ ژێبەی؟')) {
+            allReports = allReports.filter(r => r.id !== reportId);
+            saveData('aqaratReports', allReports);
+            renderAdminReportsView();
+        }
+    }
+
+    function renderFavoritesPage() {
+        if(!elements.favoritesContainer) return;
+        elements.favoritesContainer.innerHTML = '';
+        const publicPosts = getPublicPosts();
+        const favoritePosts = publicPosts.filter(post => favoritePostIds.includes(post.id));
+        if (favoritePosts.length === 0) {
+            elements.favoritesContainer.innerHTML = `<p class="empty-page-message" data-translate="favEmpty"></p>`;
+            applyTranslations(currentLang); return;
+        }
+        favoritePosts.forEach(post => {
+            const cardWrapper = document.createElement('div');
+            cardWrapper.innerHTML = createCardHTML(post, 'grid');
+            cardWrapper.querySelector('.property-card').addEventListener('click', (e) => {
+                if(e.target.classList.contains('favorite-toggle')) {
+                     e.stopPropagation();
+                     toggleFavorite(post.id);
+                }
+                else { switchPage('post-detail-page'); renderPostDetailPage(post.id); }
+            });
+            elements.favoritesContainer.prepend(cardWrapper);
+        });
+        document.querySelectorAll('.lazy-load').forEach(img => lazyLoadObserver.observe(img));
+        applyTranslations(currentLang);
+    }
+    
+    function setupMultiSelectSegmentedControl(controlId, inputId, defaultValue = '') {
+        const control = document.getElementById(controlId);
+        const input = document.getElementById(inputId);
+        const buttons = control.querySelectorAll('button');
+        
+        const updateInputValue = () => {
+            const activeValues = Array.from(control.querySelectorAll('button.active'))
+                                      .map(b => b.dataset.value);
+            input.value = activeValues.join(', ');
+        };
+
+        const defaultValues = defaultValue.split(',').map(item => item.trim());
+        buttons.forEach(button => {
+            if (defaultValues.includes(button.dataset.value)) {
+                button.classList.add('active');
+            }
+            button.addEventListener('click', () => {
+                button.classList.toggle('active');
+                updateInputValue();
+            });
+        });
+        updateInputValue();
+    }
+
+    function setupPropertyTypeSelector(containerId, inputId = null, defaultValue = '') {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        const input = inputId ? document.getElementById(inputId) : null;
+        container.innerHTML = '';
+        const types = ['house', 'apartment', 'villa', 'farm', 'land', 'commercial'];
+        types.forEach(type => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.dataset.value = type;
+            button.innerHTML = `<i class="fa-solid ${propertyTypeIcons[type]}"></i><span data-translate="${type}"></span>`;
+            container.appendChild(button);
+        });
+        
+        const buttons = container.querySelectorAll('button');
+        let currentValue = defaultValue || 'house';
+        
+        const updateState = () => {
+            buttons.forEach(b => b.classList.toggle('active', currentValue === b.dataset.value));
+            if (input) input.value = currentValue;
+        };
+
+        buttons.forEach(button => {
+            button.addEventListener('click', () => {
+                currentValue = button.dataset.value;
+                updateState();
+            });
+        });
+        updateState();
+    }
+    
+    function setupNumberSelector(containerId, max, inputId = null, defaultValue = '') {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        
+        container.innerHTML = '';
+        let currentValue = defaultValue || '';
+        if(inputId) document.getElementById(inputId).value = currentValue;
+
+        for (let i = 1; i <= max; i++) {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.dataset.value = i;
+            button.textContent = i;
+            if (i.toString() === currentValue) {
+                button.classList.add('active');
+            }
+            button.addEventListener('click', () => {
+                const allButtons = container.querySelectorAll('button');
+                const clickedValue = button.dataset.value;
+                if (button.classList.contains('active')) {
+                    button.classList.remove('active');
+                    if(inputId) document.getElementById(inputId).value = '';
+                } else {
+                    allButtons.forEach(b => b.classList.remove('active'));
+                    button.classList.add('active');
+                    if(inputId) document.getElementById(inputId).value = clickedValue;
+                }
+            });
+            container.appendChild(button);
+        }
+    }
+    
+    function renderEditProfilePage() {
+        const container = document.getElementById('edit-profile-page');
+        if (!container) return;
+        container.innerHTML = `
+            <div class="form-container">
+                <div class="detail-header" style="border-radius: 0 !important; margin: -20px -20px 20px -20px;">
+                     <button id="back-to-profile-btn" class="back-btn"><i class="fa-solid fa-arrow-left"></i></button>
+                     <div class="detail-title-wrapper"><h3 class="detail-title" data-translate="editProfilePageTitle"></h3></div>
+                     <div style="width: 40px;"></div>
+                </div>
+                
+                <form id="edit-profile-form-page">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <label for="edit-profile-pic-input-page" id="edit-profile-pic-container" style="position: relative; display: inline-block;">
+                            <img src="${currentUser.pic}" id="edit-profile-pic-preview" style="width: 150px; height: 150px; border-radius: 20px; object-fit: cover; cursor: pointer; border: 4px solid var(--border-color);">
+                            <div style="position: absolute; bottom: 10px; right: 10px; background-color: var(--card-background); border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow);">
+                                <i class="fa-solid fa-camera" style="color: var(--primary-color);"></i>
+                            </div>
+                        </label>
+                        <input type="file" id="edit-profile-pic-input-page" accept="image/*" style="display: none;">
+                    </div>
+
+                    <div class="form-group">
+                        <label data-translate="nameLabel"></label>
+                        <input type="text" id="edit-profile-name-input-page" value="${currentUser.name}" required>
+                    </div>
+                    <button type="submit" class="submit-btn" data-translate="updateButton"></button>
+                </form>
+            </div>
+        `;
+        applyTranslations(currentLang);
+    }
+
+
+    function renderAddForm(post = {}) {
+        const isEditing = Object.keys(post).length > 0;
+        editingPostId = isEditing ? post.id : null;
+        uploadedImages = [];
+
+        elements.addPropertyForm.innerHTML = `
+            <h2 id="form-title" style="text-align:center; margin-bottom: 25px;"></h2>
+            
+            <div class="form-card">
+                <div class="form-card-header">
+                    <i class="fa-solid fa-images"></i>
+                    <h3 data-translate="propertyImage"></h3>
+                </div>
+                <div class="form-card-body">
+                    <div class="form-group">
+                        <label for="image-upload-input" class="image-upload-box">
+                            <div class="upload-icon">
+                                <i class="fa-solid fa-cloud-arrow-up" style="font-size: 2.5em; margin-bottom: 10px;"></i>
+                                <p data-translate="chooseImage"></p>
+                            </div>
+                        </label>
+                        <input type="file" id="image-upload-input" accept="image/*" multiple>
+                        <div id="image-previews-container"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-card">
+                <div class="form-card-header">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <h3 data-translate="mainInfo"></h3>
+                </div>
+                <div class="form-card-body">
+                    <div class="form-group"><label>کۆدا مولکی</label><input type="text" name="postCode" placeholder="نموونە: 101A" value="${post.postCode || ''}"></div>
+                    <div class="form-group"><label data-translate="listingType"></label><div class="segmented-control" id="listingType-control"><button type="button" data-value="sale"><i class="fa-solid fa-tag"></i><span data-translate="forSale"></span></button><button type="button" data-value="rent"><i class="fa-solid fa-key"></i><span data-translate="forRent"></span></button></div><input type="hidden" name="listingType" id="listingType-input"></div>
+                    <div class="form-group"><label data-translate="propertyType"></label><div class="property-type-selector" id="propertyType-control"></div><input type="hidden" name="propertyType" id="propertyType-input"></div>
+                    <div class="form-group"><label data-translate="location"></label><input type="text" name="location" required placeholder="دهۆک، تاخێ ئاشتی" value="${post.location || ''}"></div>
+                    <div class="form-group"><label data-translate="price"></label><div class="segmented-control" id="priceType-control"><button type="button" data-value="numeric"><span data-translate="priceTypeNumeric"></span></button><button type="button" data-value="special"><span data-translate="priceTypeSpecial"></span></button></div><input type="hidden" name="priceType" id="priceType-input"><div class="input-with-icon" id="price-value-container" style="margin-top:10px;"><i class="fa-solid fa-dollar-sign"></i><input type="number" name="priceValue" placeholder="150000" value="${post.priceValue || ''}"></div></div>
+                    <div class="form-group"><label data-translate="phone"></label><div class="input-with-icon"><i class="fa-solid fa-phone"></i><input type="tel" name="phone" required placeholder="07XX XXX XXXX" value="${post.phone || ''}"></div></div>
+                </div>
+            </div>
+            
+            <div class="form-card">
+                <div class="form-card-header">
+                    <i class="fa-solid fa-list-check"></i>
+                    <h3 data-translate="propertySpecs"></h3>
+                </div>
+                <div class="form-card-body">
+                    <div class="form-grid"><div class="form-group"><label data-translate="area"></label><input type="number" name="area" placeholder="150" required value="${post.area || ''}"></div><div class="form-group"><label data-translate="direction"></label><div class="direction-selector" id="direction-control"><button type="button" data-value="روژهەلات">روژهەلات</button><button type="button" data-value="روژئاڤا">روژئاڤا</button><button type="button" data-value="باکور">باکور</button><button type="button" data-value="باشوور">باشوور</button></div><input type="hidden" name="direction" id="direction-input"></div></div>
+                    <div class="form-group"><label data-translate="bedrooms"></label><div class="number-selector" id="bedrooms-control"></div><input type="hidden" name="bedrooms" id="bedrooms-input"></div>
+                    <div class="form-group"><label data-translate="bathrooms"></label><div class="number-selector" id="bathrooms-control"></div><input type="hidden" name="bathrooms" id="bathrooms-input"></div>
+                    <div class="form-group"><label data-translate="floors"></label><div class="number-selector" id="floors-control"></div><input type="hidden" name="floors" id="floors-input"></div>
+                    <div class="form-group"><label data-translate="garden"></label><div class="segmented-control" id="garden-control"><button type="button" data-value="no"><span data-translate="no"></span></button><button type="button" data-value="yes"><span data-translate="yes"></span></button></div><input type="hidden" name="garden" id="garden-input"></div>
+                    <div class="form-group"><label data-translate="isZero"></label><div class="segmented-control" id="isZero-control"><button type="button" data-value="no"><span data-translate="no"></span></button><button type="button" data-value="yes"><span data-translate="yes"></span></button></div><input type="hidden" name="isZero" id="isZero-input"></div>
+                </div>
+            </div>
+
+            <div class="form-card">
+                 <div class="form-card-header">
+                    <i class="fa-solid fa-map-location-dot"></i>
+                    <h3 data-translate="mapLocation"></h3>
+                </div>
+                <div class="form-card-body" style="padding:0;">
+                    <div id="location-picker-map"></div>
+                </div>
+            </div>
+            
+            <div class="form-notice"><i class="fa-solid fa-check-double"></i><p><strong>تێبینی:</strong> پشتی هنارتنا پۆستی، دێ ل ژێر پێداچوونێ دا بیت هەتا ژ لایێ تیمێ ڤە بهێتە پەسەندکرن.</p></div>
+            <button type="submit" class="submit-btn"><span data-translate="postButton"></span></button>
+        `;
+        
+        document.getElementById('form-title').setAttribute('data-translate', isEditing ? 'editFormTitle' : 'addFormTitle');
+        document.querySelector('button[type="submit"] > span').setAttribute('data-translate', isEditing ? 'updateButton' : 'postButton');
+        
+        function setupSegmentedControl(controlId, inputId, defaultValue, onchangeCallback) {
+            const control = document.getElementById(controlId);
+            const input = document.getElementById(inputId);
+            const buttons = control.querySelectorAll('button');
+            let currentValue = defaultValue || buttons[0]?.dataset.value;
+            if(input) input.value = currentValue;
+            buttons.forEach(b => b.classList.toggle('active', b.dataset.value === currentValue));
+            buttons.forEach(button => {
+                button.addEventListener('click', () => {
+                    buttons.forEach(b => b.classList.remove('active'));
+                    button.classList.add('active');
+                    if(input) input.value = button.dataset.value;
+                    if (onchangeCallback) onchangeCallback(button.dataset.value);
+                });
+            });
+            if (onchangeCallback) onchangeCallback(currentValue);
+        }
+        
+        const priceValueContainer = document.getElementById('price-value-container');
+        const togglePriceInputVisibility = (type) => { priceValueContainer.style.display = type === 'numeric' ? 'block' : 'none'; };
+
+        setupSegmentedControl('priceType-control', 'priceType-input', post.priceType || 'numeric', togglePriceInputVisibility);
+        setupSegmentedControl('listingType-control', 'listingType-input', post.listingType);
+        setupSegmentedControl('garden-control', 'garden-input', post.garden);
+        setupSegmentedControl('isZero-control', 'isZero-input', post.isZero);
+        
+        setupMultiSelectSegmentedControl('direction-control', 'direction-input', post.direction);
+        setupNumberSelector('bedrooms-control', 10, 'bedrooms-input', post.bedrooms);
+        setupNumberSelector('bathrooms-control', 5, 'bathrooms-input', post.bathrooms);
+        setupNumberSelector('floors-control', 5, 'floors-input', post.floors);
+        setupPropertyTypeSelector('propertyType-control', 'propertyType-input', post.propertyType);
+        
+        const imageInput = document.getElementById('image-upload-input');
+        const previewsContainer = document.getElementById('image-previews-container');
+
+        if (isEditing && post.imageUrls) {
+            uploadedImages = [...post.imageUrls];
+            renderImagePreviews();
+        }
+
+        imageInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            files.forEach(file => {
+                 const reader = new FileReader();
+                 reader.onload = (event) => {
+                     uploadedImages.push(event.target.result);
+                     renderImagePreviews();
+                 };
+                 reader.readAsDataURL(file);
+            });
+        });
+
+        function renderImagePreviews() {
+            previewsContainer.innerHTML = '';
+            uploadedImages.forEach((imgSrc, index) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'img-preview-wrapper';
+                wrapper.innerHTML = `
+                    <img src="${imgSrc}" alt="Preview">
+                    <div class="delete-img-btn" data-index="${index}">&times;</div>
+                `;
+                previewsContainer.appendChild(wrapper);
+            });
+        }
+        
+        previewsContainer.addEventListener('click', function(e){
+            if(e.target.classList.contains('delete-img-btn')){
+                const indexToRemove = parseInt(e.target.dataset.index, 10);
+                uploadedImages.splice(indexToRemove, 1);
+                renderImagePreviews();
+            }
+        });
+
+
+        applyTranslations(currentLang);
+        const initialMapCoords = isEditing && post.coords ? post.coords : defaultCoords;
+        initializePickerMap(initialMapCoords);
+    }
+    function enableDarkMode() { document.body.classList.add('dark-mode'); localStorage.setItem('theme', 'dark'); }
+    function disableDarkMode() { document.body.classList.remove('dark-mode'); localStorage.setItem('theme', 'light'); }
+    
+    function handleFormSubmit(e) {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const formValues = Object.fromEntries(formData.entries());
+        
+        const isEditing = !!editingPostId;
+        const notifications = loadData('notifications') || [];
+        
+        const postData = { 
+            ...formValues, 
+            id: editingPostId || Date.now().toString(), 
+            coords: selectedCoords,
+            imageUrls: uploadedImages,
+            userId: currentUser.id,
+            status: 'pending' // Always set to pending initially
+        };
+        
+        if (isEditing) {
+            const index = allPosts.findIndex(p => p.id === editingPostId);
+            if (index > -1) {
+                postData.userId = allPosts[index].userId; // Keep original owner
+                allPosts[index] = postData;
+                
+                notifications.push({
+                    id: Date.now(),
+                    title: 'پۆستەک هاتە نویکرن',
+                    body: `پۆستێ "${postData.location}" ژلایێ "${currentUser.name}" ڤە هاتە نویکرن و چوو د چاڤەرێکرنێ دا.`,
+                    userId: 'admin_user_id',
+                    read: false
+                });
+            }
+        } else {
+            allPosts.unshift(postData);
+            notifications.push({
+                id: Date.now(),
+                title: 'پۆستەکێ نوو یێ چاڤەرێیە',
+                body: `پۆستەکێ نوو ب ناڤونیشانێ "${postData.location}" ژلایێ "${currentUser.name}" ڤە هاتە هنارتن.`,
+                userId: 'admin_user_id',
+                read: false
+            });
+        }
+        
+        saveData('notifications', notifications);
+        saveData('aqaratPosts', allPosts);
+        editingPostId = null; 
+        uploadedImages = [];
+        
+        showToast(isEditing ? translations.postUpdatedSuccess[currentLang] : translations.postSubmittedSuccess[currentLang]);
+        
+        renderAll();
+        switchPage('profile-page');
+    }
+
+    function toggleFavorite(postId) {
+        const index = favoritePostIds.indexOf(postId);
+        if (index > -1) favoritePostIds.splice(index, 1);
+        else favoritePostIds.push(postId);
+        saveData('favoritePosts', favoritePostIds);
+        
+        filterAndRenderHomePage();
+        renderApartmentsPage();
+        renderFavoritesPage();
+        const detailFavBtn = document.querySelector(`#post-detail-page .detail-fav-btn[data-post-id="${postId}"]`);
+        if (detailFavBtn) {
+            detailFavBtn.classList.toggle('is-favorite');
+            detailFavBtn.classList.toggle('fa-solid');
+            detailFavBtn.classList.toggle('fa-regular');
+        }
+    }
+    function approvePost(postId) {
+        const post = allPosts.find(p => p.id === postId);
+        if(post && post.status === 'pending') {
+            post.status = null;
+            saveData('aqaratPosts', allPosts);
+
+            const user = allUsers.find(u => u.id === post.userId);
+            if (user) { 
+                const notifications = loadData('notifications') || [];
+                notifications.push({
+                    id: Date.now(),
+                    title: 'پۆستێ تە هاتە پەسەندکرن',
+                    body: `پۆستێ تە ب ناڤونیشانێ "${post.location}" هاتە پەسەندکرن و نوکە بۆ هەمیان دیارە.`,
+                    userId: post.userId,
+                    read: false
+                });
+                saveData('notifications', notifications);
+            }
+            showToast(translations.postApprovedSuccess[currentLang]);
+            renderAll();
+        }
+    }
+    function togglePostStatus(postId) {
+        const post = allPosts.find(p => p.id === postId);
+        if(!post) return;
+        
+        const newStatus = post.status ? null : (post.listingType === 'sale' ? 'sold' : 'rented');
+        post.status = newStatus;
+        saveData('aqaratPosts', allPosts);
+        renderAdminPage();
+    }
+    function editPost(postId) {
+        editingPostId = postId;
+        switchPage('add-page');
+    }
+    function deletePost(postId) {
+        if (!confirm(translations.confirmDelete[currentLang])) return;
+        allPosts = allPosts.filter(p => p.id !== postId);
+        favoritePostIds = favoritePostIds.filter(id => id !== postId);
+        saveData('aqaratPosts', allPosts); saveData('favoritePosts', favoritePostIds);
+        visiblePostsCount = 6; 
+        const currentPage = document.querySelector('.page-content.active').id;
+        renderAll();
+        if(currentPage === 'admin-page') {
+             renderAdminPage();
+        } else {
+            switchPage('profile-page');
+        }
+    }
+     function deleteUser(userId) {
+        if(confirm('تو پشتراستی دێ ڤی بکارهێنەری ژێبەی؟')) {
+            allUsers = allUsers.filter(u => u.id !== userId);
+            saveData('users', allUsers);
+            renderAdminUsersView();
+            renderAdminDashboard();
+        }
+    }
+    
+    function initializePickerMap(coords) {
+        if (pickerMap) pickerMap.remove();
+        pickerMap = L.map('location-picker-map').setView(coords, 13);
+        L.control.layers(baseLayers).addTo(pickerMap);
+        baseLayers['Sade'].addTo(pickerMap);
+        const pickerIcon = L.divIcon({ className: 'picker-map-marker', iconSize: [20, 20] });
+        pickerMarker = L.marker(coords, { draggable: true, icon: pickerIcon }).addTo(pickerMap);
+        selectedCoords = coords;
+        pickerMap.on('click', e => { selectedCoords = e.latlng; pickerMarker.setLatLng(selectedCoords); });
+        pickerMarker.on('dragend', e => { selectedCoords = e.target.getLatLng(); });
+    }
+    function initializeMainMap() {
+        if(mainMap) return;
+        mainMap = L.map('main-map-container', { zoomControl: false }).setView(defaultCoords, 14); 
+        currentTileLayer.addTo(mainMap);
+        markerClusterGroup = L.markerClusterGroup({
+            maxClusterRadius: 50 
+        });
+        mainMap.addLayer(markerClusterGroup);
+    }
+    function initializeCustomLayerControl() {
+        const container = document.getElementById('custom-layer-control-container');
+        container.innerHTML = `<div class="custom-map-layer-switcher"></div>`;
+        const switcher = container.querySelector('.custom-map-layer-switcher');
+        
+        Object.keys(baseLayers).forEach(name => {
+            const button = document.createElement('button');
+            button.textContent = name;
+            button.dataset.layer = name;
+            if (baseLayers[name] === currentTileLayer) {
+                button.classList.add('active');
+            }
+            button.addEventListener('click', () => {
+                if(mainMap.hasLayer(currentTileLayer)) {
+                    mainMap.removeLayer(currentTileLayer);
+                }
+                currentTileLayer = baseLayers[name];
+                mainMap.addLayer(currentTileLayer);
+                
+                switcher.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+            });
+            switcher.appendChild(button);
+        });
+    }
+    function renderMapMarkers() {
+        if (!mainMap || !markerClusterGroup) return;
+        markerClusterGroup.clearLayers();
+        
+        getPublicPosts().forEach((post) => {
+            if (post.coords && post.coords.lat && post.coords.lng) {
+                const iconClass = propertyTypeIcons[post.propertyType] || propertyTypeIcons.default;
+                let markerColorClass = '';
+                if(post.status === 'sold' || post.status === 'rented') {
+                    markerColorClass = ' sold';
+                } else if (post.listingType === 'rent') {
+                    markerColorClass = ' rent';
+                }
+                const customIcon = L.divIcon({
+                    className: `custom-map-marker${markerColorClass}`,
+                    html: `<i class="fa-solid ${iconClass}"></i>`,
+                    iconSize: [30, 30],
+                    iconAnchor: [15, 15]
+                });
+                const firstImage = (post.imageUrls && post.imageUrls.length > 0) ? post.imageUrls[0] : 'https://via.placeholder.com/400x400.png?text=Wêne+Nîne';
+                const priceDisplay = formatPrice(post);
+                const popupContent = `<div class="map-popup"><img src="${firstImage}" alt="${post.location}"><h4>${post.location}</h4><div class="price">${priceDisplay}</div><button class="view-details-btn" data-post-id="${post.id}" data-translate="viewDetails"></button></div>`;
+                const marker = L.marker([post.coords.lat, post.coords.lng], { icon: customIcon }).bindPopup(popupContent);
+                marker.on('popupopen', () => applyTranslations(currentLang));
+                markerClusterGroup.addLayer(marker);
+            }
+        });
+    }
+
+    function initializeSinglePostMap(coords) {
+        if (singlePostMap) singlePostMap.remove();
+        singlePostMap = L.map('single-post-map').setView(coords, 15);
+        baseLayers['Satelite'].addTo(singlePostMap);
+        const mainIcon = L.divIcon({ className: 'custom-map-marker', html: `<i class="fa-solid fa-location-dot"></i>`, iconSize: [30, 30] });
+        L.marker(coords, { icon: mainIcon }).addTo(singlePostMap);
+    }
+    function showToast(message) {
+        const toast = document.createElement('div');
+        toast.id = 'toast-notification';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }, 100);
+    }
+    
+    function updateMapControls() {
+        const mapControls = document.querySelector('.map-controls');
+        if (!mapControls) return;
+
+        mapControls.innerHTML = `
+            <div class="map-control-group">
+                <button id="zoom-in-btn" title="گەورەکرن"><i class="fa-solid fa-plus"></i></button>
+                <button id="zoom-out-btn" title="بچویککرن"><i class="fa-solid fa-minus"></i></button>
+            </div>
+            <button id="locate-me-btn" title="جهێ من"><i class="fa-solid fa-location-crosshairs"></i></button>
+        `;
+    }
+
+    function openPrivateDataModal(recordId = null) {
+        const modal = document.getElementById('private-data-modal');
+        const form = document.getElementById('private-data-form');
+        const modalTitle = document.getElementById('private-data-modal-title');
+        form.reset();
+        document.getElementById('private-record-id').value = '';
+
+        if (recordId) {
+            const record = privateProperties.find(p => p.id === recordId);
+            modalTitle.textContent = 'Destkarîkirina Tomarê';
+            document.getElementById('private-record-id').value = record.id;
+            document.getElementById('private-location').value = record.location;
+            document.getElementById('private-price').value = record.price;
+            document.getElementById('private-area').value = record.area;
+            document.getElementById('private-phone').value = record.phone;
+            document.getElementById('private-notes').value = record.notes;
+        } else {
+            modalTitle.textContent = 'Tomarekê Nû Zêdeke';
+        }
+        modal.style.display = 'block';
+    }
+    
+    function savePrivateRecord(e) {
+        e.preventDefault();
+        const recordId = document.getElementById('private-record-id').value;
+        const record = {
+            id: recordId || Date.now().toString(),
+            location: document.getElementById('private-location').value,
+            price: document.getElementById('private-price').value,
+            area: document.getElementById('private-area').value,
+            phone: document.getElementById('private-phone').value,
+            notes: document.getElementById('private-notes').value,
+        };
+
+        if (recordId) {
+            const index = privateProperties.findIndex(p => p.id === recordId);
+            privateProperties[index] = record;
+        } else {
+            privateProperties.unshift(record);
+        }
+        saveData('privateProperties', privateProperties);
+        document.getElementById('private-data-modal').style.display = 'none';
+        renderAdminPrivateDataView();
+    }
+    
+    function deletePrivateRecord(recordId) {
+        if(confirm('Tu piştrastî dixwazî vî tomarî jêbibî?')) {
+            privateProperties = privateProperties.filter(p => p.id !== recordId);
+            saveData('privateProperties', privateProperties);
+            renderAdminPrivateDataView();
+        }
+    }
+
+    function filterAndRenderHomePage() {
+        const searchTerm = elements.homeSearchInput.value.toLowerCase().trim();
+        const minPrice = parseFloat(elements.homeFilterMinPrice.value);
+        const maxPrice = parseFloat(elements.homeFilterMaxPrice.value);
+        const minArea = parseFloat(elements.homeFilterMinArea.value);
+        const maxArea = parseFloat(elements.homeFilterMaxArea.value);
+
+        const homePosts = getPublicPosts().filter(p => p.propertyType !== 'apartment');
+
+        const results = homePosts.filter(post => {
+            if (searchTerm) {
+                const inLocation = post.location && post.location.toLowerCase().includes(searchTerm);
+                const inCode = post.postCode && post.postCode.toLowerCase().includes(searchTerm);
+                if (!inLocation && !inCode) return false;
+            }
+
+            if (!isNaN(minPrice) || !isNaN(maxPrice)) {
+                if (post.priceType !== 'numeric') return false; 
+                const postPrice = parseFloat(post.priceValue);
+                if (isNaN(postPrice)) return false; 
+                if (!isNaN(minPrice) && postPrice < minPrice) return false;
+                if (!isNaN(maxPrice) && postPrice > maxPrice) return false;
+            }
+
+            if (!isNaN(minArea) || !isNaN(maxArea)) {
+                const postArea = parseFloat(post.area);
+                if (isNaN(postArea)) return false;
+                if (!isNaN(minArea) && postArea < minArea) return false;
+                if (!isNaN(maxArea) && postArea > maxArea) return false;
+            }
+
+            return true;
+        });
+
+        renderPosts(elements.postsGridContainer, results, 'grid');
+    }
+
+    let adminClickCount = 0;
+    let adminClickTimer = null;
+    
+    function showAuthView(viewId) {
+        ['login-container', 'register-container', 'forgot-password-container', 'reset-password-container', 'verify-email-container'].forEach(id => {
+            document.getElementById(id).style.display = 'none';
+        });
+        document.getElementById(viewId).style.display = 'block';
+    }
+
+    function handleRegistration(e) {
+        e.preventDefault();
+        const name = document.getElementById('register-name').value;
+        const email = document.getElementById('register-email').value;
+        const password = document.getElementById('register-password').value;
+        
+        if (!name || !email || !password) {
+            showToast(translations.enterAllFields[currentLang]);
+            return;
+        }
+        if (allUsers.find(u => u.email === email)) {
+            showToast(translations.emailInUse[currentLang]);
+            return;
+        }
+
+        const code = Math.floor(100000 + Math.random() * 900000);
+        registrationState = { name, email, password, code };
+        
+        showToast(translations.verificationCodeSent[currentLang]);
+        console.log(`کۆدێ پشتراستکرنێ بۆ (${email}): ${code}`);
+        showAuthView('verify-email-container');
+    }
+
+    function handleVerification(e) {
+        e.preventDefault();
+        const enteredCode = document.getElementById('verify-code').value;
+
+        if (parseInt(enteredCode) !== registrationState.code) {
+            showToast(translations.invalidCode[currentLang]);
+            return;
+        }
+
+        const newUser = {
+            id: 'user_' + Date.now(),
+            name: registrationState.name,
+            email: registrationState.email,
+            password: registrationState.password,
+            pic: 'https://via.placeholder.com/100',
+            isAnonymous: false
+        };
+
+        allUsers.push(newUser);
+        saveData('users', allUsers);
+        currentUser = newUser;
+        saveData('currentUser', currentUser);
+
+        showToast(translations.registrationSuccess[currentLang]);
+        registrationState = null;
+        renderProfilePage();
+    }
+
+
+    function handleLogin(e) {
+        e.preventDefault();
+        const identifier = document.getElementById('login-identifier').value;
+        const password = document.getElementById('login-password').value;
+        if (!identifier || !password) {
+            showToast(translations.enterAllFields[currentLang]);
+            return;
+        }
+        const foundUser = allUsers.find(u => u.email === identifier && u.password === password);
+        if (foundUser) {
+            currentUser = foundUser;
+            saveData('currentUser', currentUser);
+            renderProfilePage();
+        } else {
+            showToast(translations.loginError[currentLang]);
+        }
+    }
+    
+    function handleForgotPasswordRequest(e) {
+        e.preventDefault();
+        const email = document.getElementById('reset-email').value;
+        if (!email) return;
+
+        const userExists = allUsers.find(u => u.email === email);
+        if (!userExists) {
+            showToast(translations.userNotFound[currentLang]);
+            return;
+        }
+        const code = Math.floor(100000 + Math.random() * 900000);
+        passwordResetState = { email, code };
+        
+        showToast(translations.verificationCodeSent[currentLang]);
+        console.log(`کۆدێ ژبیرکرنا پاسوۆردی بۆ (${email}): ${code}`);
+        showAuthView('reset-password-container');
+    }
+
+    function handlePasswordReset(e) {
+        e.preventDefault();
+        const code = document.getElementById('reset-code').value;
+        const newPassword = document.getElementById('new-password').value;
+        const confirmPassword = document.getElementById('confirm-password').value;
+
+        if (!code || !newPassword || !confirmPassword) {
+            showToast(translations.enterAllFields[currentLang]);
+            return;
+        }
+        if (parseInt(code) !== passwordResetState.code) {
+            showToast(translations.invalidCode[currentLang]);
+            return;
+        }
+        if (newPassword !== confirmPassword) {
+            showToast(translations.passwordsNoMatch[currentLang]);
+            return;
+        }
+        
+        const userIndex = allUsers.findIndex(u => u.email === passwordResetState.email);
+        allUsers[userIndex].password = newPassword;
+        saveData('users', allUsers);
+        showToast(translations.passwordChangedSuccess[currentLang]);
+        passwordResetState = null;
+        showAuthView('login-container');
+    }
+
+    function handleLogout() {
+        const defaultUser = { 
+            id: 'anonymous_user', 
+            name: 'بکارهێنەرێ نەناس', 
+            pic: 'https://via.placeholder.com/100',
+            isAnonymous: true 
+        };
+        currentUser = defaultUser;
+        saveData('currentUser', currentUser);
+        sessionStorage.removeItem('isAdmin');
+        renderProfilePage();
+    }
+    
+    function checkForUnreadNotifications(){
+        const allNotifications = loadData('notifications') || [];
+        const userNotifications = allNotifications.filter(n => n.userId === currentUser.id || n.userId === 'all' || (n.userId === 'admin_user_id' && sessionStorage.getItem('isAdmin')));
+        const hasUnread = userNotifications.some(n => !n.read);
+
+        const profileBtn = document.getElementById('profile-header-btn');
+        const notificationsSummary = document.querySelector('#notifications-details summary');
+        
+        if (profileBtn) profileBtn.classList.toggle('has-notification', hasUnread);
+        if (notificationsSummary) notificationsSummary.classList.toggle('has-notification', hasUnread);
+    }
+    
+    function handleSendNotification(e) {
+        e.preventDefault();
+        const title = document.getElementById('notification-title').value;
+        const body = document.getElementById('notification-body').value;
+
+        if (!title || !body) {
+            showToast(translations.enterAllFields[currentLang]);
+            return;
+        }
+
+        const notifications = loadData('notifications') || [];
+        const newNotification = {
+            id: Date.now(),
+            title: title,
+            body: body,
+            userId: 'all',
+            read: false
+        };
+        notifications.push(newNotification);
+        saveData('notifications', notifications);
+        
+        showToast(translations.notificationSent[currentLang]);
+        document.getElementById('send-notification-form').reset();
+        renderAll();
+    }
+    
+    function handleSendReport(e) {
+        e.preventDefault();
+        const reportText = document.getElementById('report-text').value;
+        if (!reportText) return;
+
+        const newReport = {
+            id: Date.now().toString(),
+            userId: currentUser.id,
+            userName: currentUser.name,
+            text: reportText,
+            timestamp: new Date().toISOString()
+        };
+
+        allReports.push(newReport);
+        saveData('aqaratReports', allReports);
+        showToast(translations.reportSentSuccess[currentLang]);
+        e.target.reset();
+    }
+
+    function setupEventListeners() {
+        document.querySelectorAll('.bottom-nav a').forEach(l => {
+            l.addEventListener('click', e => {
+                e.preventDefault();
+                const targetLink = e.currentTarget;
+
+                if (targetLink.id === 'fab-add-btn') {
+                    if (currentUser.isAnonymous) {
+                        showToast(translations.mustLoginToAdd[currentLang]);
+                        switchPage('profile-page');
+                    } else {
+                        switchPage('add-page');
+                    }
+                } else if (!targetLink.classList.contains('active')) {
+                    visiblePostsCount = 6;
+                    switchPage(targetLink.dataset.page);
+                }
+            });
+        });
+        
+        document.getElementById('profile-header-btn').addEventListener('click', e => { e.preventDefault(); switchPage('profile-page'); });
+        document.getElementById('settings-header-btn').addEventListener('click', e => { e.preventDefault(); switchPage('settings-page'); });
+        
+        elements.homeSearchInput.addEventListener('input', filterAndRenderHomePage);
+        elements.homeFilterMinPrice.addEventListener('input', filterAndRenderHomePage);
+        elements.homeFilterMaxPrice.addEventListener('input', filterAndRenderHomePage);
+        elements.homeFilterMinArea.addEventListener('input', filterAndRenderHomePage);
+        elements.homeFilterMaxArea.addEventListener('input', filterAndRenderHomePage);
+        elements.homeFilterResetBtn.addEventListener('click', () => {
+            elements.homeSearchInput.value = '';
+            elements.homeFilterMinPrice.value = '';
+            elements.homeFilterMaxPrice.value = '';
+            elements.homeFilterMinArea.value = '';
+            elements.homeFilterMaxArea.value = '';
+            filterAndRenderHomePage();
+        });
+
+        elements.body.addEventListener('click', function(e) {
+            const target = e.target.closest('a, button, p, span');
+            if (!target) return;
+
+            if (target.closest('#locate-me-btn')) mainMap.locate({setView: true, maxZoom: 16});
+            if (target.closest('#zoom-in-btn')) mainMap.zoomIn();
+            if (target.closest('#zoom-out-btn')) mainMap.zoomOut();
+            if (target.id === 'forgot-password-link') { e.preventDefault(); showAuthView('forgot-password-container'); }
+            
+            if (target.id === 'go-to-edit-profile-btn') switchPage('edit-profile-page');
+            if (target.id === 'back-to-profile-btn') switchPage('profile-page');
+            
+            if (target.closest('#profile-pic-container')) document.getElementById('profile-pic-input').click();
+            if (target.closest('#logout-btn')) handleLogout();
+
+            if (target.classList.contains('view-details-btn')) {
+                const postId = target.dataset.postId;
+                if(postId) { switchPage('post-detail-page'); renderPostDetailPage(postId); }
+            }
+            if (target.id === 'load-more-btn') {
+                 visiblePostsCount += postsPerPage;
+                 filterAndRenderHomePage();
+            }
+            
+            if(target.id === 'show-register-link') showAuthView('register-container');
+            if(['show-login-link', 'back-to-login-link-1', 'back-to-login-link-2', 'back-to-login-link-3'].includes(target.id)) showAuthView('login-container');
+             if(target.closest('.dev-name')) {
+                adminClickCount++;
+                clearTimeout(adminClickTimer);
+                adminClickTimer = setTimeout(() => { adminClickCount = 0; }, 2000);
+                if (adminClickCount >= 7) {
+                    clearTimeout(adminClickTimer);
+                    adminClickCount = 0;
+                    document.getElementById('admin-login-modal').style.display = 'block';
+                }
+            }
+            if (target.id === 'admin-home-btn') {
+                switchPage('home-page');
+            }
+            if(target.id === 'btn-show-posts') showAdminView('admin-posts-view');
+            if(target.id === 'btn-show-users') showAdminView('admin-users-view');
+            if(target.id === 'btn-show-private-data') showAdminView('admin-private-data-view');
+            if(target.id === 'btn-show-notifications') showAdminView('admin-notifications-view');
+            if(target.id === 'btn-show-reports') showAdminView('admin-reports-view');
+            if(['btn-back-to-dashboard-1','btn-back-to-dashboard-2','btn-back-to-dashboard-3', 'btn-back-to-dashboard-4', 'btn-back-to-dashboard-5'].includes(target.id) ) showAdminView('admin-dashboard');
+
+            if(target.id === 'btn-add-private-record') openPrivateDataModal();
+            const privateModal = document.getElementById('private-data-modal');
+            const adminModal = document.getElementById('admin-login-modal');
+            
+            if(e.target.classList.contains('close-btn') && e.target.closest('.modal')) e.target.closest('.modal').style.display = 'none';
+            if (e.target === privateModal) privateModal.style.display = 'none';
+            if (e.target === adminModal) adminModal.style.display = 'none';
+        });
+        
+        document.getElementById('private-data-form').addEventListener('submit', savePrivateRecord);
+        document.getElementById('users-data-search')?.addEventListener('input', renderAdminUsersView);
+        document.getElementById('private-data-search')?.addEventListener('input', renderAdminPrivateDataView);
+
+        elements.body.addEventListener('submit', function(e) { 
+            if (e.target.id === 'add-property-form') handleFormSubmit(e); 
+            if (e.target.id === 'register-form') handleRegistration(e);
+            if (e.target.id === 'verify-email-form') handleVerification(e);
+            if (e.target.id === 'login-form') handleLogin(e);
+            if (e.target.id === 'request-code-form') handleForgotPasswordRequest(e);
+            if (e.target.id === 'reset-password-form') handlePasswordReset(e);
+            if (e.target.id === 'send-notification-form') handleSendNotification(e);
+            if (e.target.id === 'report-form') handleSendReport(e);
+            if (e.target.id === 'edit-profile-form-page') {
+                e.preventDefault();
+                const newName = document.getElementById('edit-profile-name-input-page').value;
+                if (newName && newName !== currentUser.name) {
+                    currentUser.name = newName;
+                    saveData('currentUser', currentUser);
+                }
+                showToast(translations.profileUpdated[currentLang]);
+                switchPage('profile-page');
+            }
+            if (e.target.id === 'admin-login-form') {
+                 e.preventDefault();
+                 const username = document.getElementById('admin-username').value;
+                 const password = document.getElementById('admin-password').value;
+                 if ((username.toLowerCase() === 'omed' && password === 'Omed@2008') || (username.toLowerCase() === 'admin' && password === 'admin')) {
+                    sessionStorage.setItem('isAdmin', 'true');
+                    document.getElementById('admin-login-modal').style.display = 'none';
+                    e.target.reset();
+                    switchPage('admin-page');
+                } else {
+                    showToast(translations.adminLoginError[currentLang]);
+                }
+            }
+        });
+
+        elements.body.addEventListener('change', function(e){
+            if(e.target.id === 'profile-pic-input' || e.target.id === 'edit-profile-pic-input-page') {
+                if (e.target.files && e.target.files[0]) { 
+                    const reader = new FileReader(); 
+                    reader.onload = event => { 
+                        const newPicUrl = event.target.result;
+                        currentUser.pic = newPicUrl; 
+                        saveData('currentUser', currentUser);
+                        
+                        if (elements.profilePic) elements.profilePic.src = newPicUrl;
+                        const editPreview = document.getElementById('edit-profile-pic-preview');
+                        if (editPreview) editPreview.src = newPicUrl;
+                    }; 
+                    reader.readAsDataURL(e.target.files[0]); 
+                }
+            }
+            if(e.target.id === 'dark-mode-toggle'){
+                if (e.target.checked) enableDarkMode(); else disableDarkMode();
+            }
+            if(e.target.id === 'language-select'){
+                localStorage.setItem('appLanguage', e.target.value);
+                location.reload(); 
+            }
+        });
+    }
+
+    function init() {
+        populateStaticHTML();
+        Object.assign(elements, {
+            homePage: document.getElementById('home-page'), postsGridContainer: document.getElementById('posts-grid-container'),
+            apartmentsPage: document.getElementById('apartments-page'), apartmentsGridContainer: document.getElementById('apartments-grid-container'),
+            profilePage: document.getElementById('profile-page'), myPostsContainer: document.getElementById('my-posts-container'),
+            favoritesContainer: document.getElementById('favorites-page'), addPropertyForm: document.getElementById('add-property-form'),
+            usernameDisplay: document.getElementById('username-display'), profilePic: document.getElementById('profile-pic'),
+            homeSearchInput: document.getElementById('home-search-input'),
+            homeFilterMinPrice: document.getElementById('home-filter-min-price'),
+            homeFilterMaxPrice: document.getElementById('home-filter-max-price'),
+            homeFilterMinArea: document.getElementById('home-filter-min-area'),
+            homeFilterMaxArea: document.getElementById('home-filter-max-area'),
+            homeFilterResetBtn: document.getElementById('home-filter-reset-btn')
+        });
+        
+        initializeData();
+        
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        if (savedTheme === 'dark') {
+            if(darkModeToggle) darkModeToggle.checked = true;
+            document.body.classList.add('dark-mode');
+        } else {
+            document.body.classList.remove('dark-mode');
+        }
+        
+        initializeMainMap();
+        initializeCustomLayerControl();
+        renderAll();
+        setupEventListeners();
+
+        document.getElementById('language-select').value = currentLang;
+        applyTranslations(currentLang);
+    }
+    init();
+});
+</script>
+</body>
+</html>
